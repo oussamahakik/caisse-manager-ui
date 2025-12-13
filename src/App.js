@@ -121,6 +121,31 @@ function App() {
     const { data: products = [], isLoading: productsLoading } = useProducts(shouldFetchData ? token : null, snackId);
     const { data: ingredients = [] } = useIngredients(shouldFetchData ? token : null, snackId);
     const createOrderMutation = useCreateOrder(token, snackId);
+    
+    // Charger les promotions actives
+    const [promotions, setPromotions] = useState([]);
+    useEffect(() => {
+        const loadPromotions = async () => {
+            if (shouldFetchData && token && snackId) {
+                try {
+                    const apiModule = await import('./services/api');
+                    const response = await apiModule.default.get('/api/promotions/actives', {
+                        headers: { 'X-Snack-ID': snackId.toString() }
+                    });
+                    const promotionsData = response.data || [];
+                    console.log('✅ Promotions chargées:', promotionsData.length, promotionsData);
+                    setPromotions(promotionsData);
+                } catch (error) {
+                    console.error('Erreur lors du chargement des promotions:', error);
+                    setPromotions([]);
+                }
+            } else {
+                setPromotions([]);
+            }
+        };
+
+        loadPromotions();
+    }, [shouldFetchData, token, snackId]);
 
     const handleLogin = useCallback((receivedToken, receivedSnackId, receivedRole) => {
         if (!receivedToken || receivedToken.trim() === '') {
@@ -198,19 +223,25 @@ function App() {
         }
     }, []);
 
-    const finalizeOrder = useCallback(async (paymentType, cashReceived = null, remise = 0) => {
+    const finalizeOrder = useCallback(async (paymentType, cashReceived = null, remise = 0, cartWithPromos = null) => {
         if (cart.length === 0) return;
 
-        const subTotal = cart.reduce((sum, item) => sum + ((item.prix || 0) * item.quantity), 0);
+        // Utiliser cartWithPromos si fourni (avec prix réduits), sinon utiliser cart
+        const itemsToSend = cartWithPromos || cart.map(item => ({
+            ...item,
+            prixFinal: item.prix || 0
+        }));
+
+        const subTotal = itemsToSend.reduce((sum, item) => sum + ((item.prixFinal || item.prix || 0) * item.quantity), 0);
         const total = subTotal - remise;
 
         const orderData = {
             typePaiement: paymentType,
-            articles: cart.map(item => ({
+            articles: itemsToSend.map(item => ({
                 produitId: item.id,
                 quantite: item.quantity,
                 details: item.details || "",
-                prixFinal: item.prix || 0
+                prixFinal: item.prixFinal || item.prix || 0 // Prix réduit avec promotion
             })),
             remise: remise || 0
         };
@@ -221,10 +252,10 @@ function App() {
                 id: response?.id || Date.now(),
                 date: new Date().toISOString(),
                 typePaiement: paymentType,
-                lignes: cart.map(item => ({
+                lignes: itemsToSend.map(item => ({
                     nomProduit: item.nom,
                     quantite: item.quantity,
-                    prixFinal: item.prix || 0,
+                    prixFinal: item.prixFinal || item.prix || 0,
                     details: item.details || ""
                 })),
                 total: total,
@@ -438,6 +469,7 @@ function App() {
                                                 products={products} 
                                                 addToCart={addToCart} 
                                                 ingredientsList={ingredients}
+                                                promotions={promotions}
                                             />
                                         </Suspense>
                                     )}
@@ -450,6 +482,7 @@ function App() {
                                             finalizeOrder={finalizeOrder}
                                             removeFromCart={removeFromCart}
                                             clearCart={clearCart}
+                                            promotions={promotions}
                                         />
                                     </Suspense>
                                 </div>

@@ -1,11 +1,12 @@
 import React, { useState, useMemo, useCallback, memo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Package, X, Search } from 'lucide-react';
+import { Package, X, Search, Tag } from 'lucide-react';
 import TacosBuilder from './TacosBuilder';
 import Badge from './common/Badge/Badge';
 import { formatCurrency } from '../utils/formatters';
+import { findBestPromotionForProduct, calculateDiscountedPrice, formatPromotionText } from '../utils/promotions';
 
-const ProductList = memo(({ products, addToCart, ingredientsList }) => {
+const ProductList = memo(({ products, addToCart, ingredientsList, promotions = [] }) => {
     const [filter, setFilter] = useState('all');
     const [selectedTacos, setSelectedTacos] = useState(null);
     const [searchQuery, setSearchQuery] = useState('');
@@ -188,6 +189,29 @@ const ProductList = memo(({ products, addToCart, ingredientsList }) => {
                                             </div>
                                         )}
 
+                                        {/* Badge PROMO */}
+                                        {(() => {
+                                            const promotion = findBestPromotionForProduct(product, promotions, product.prix || 0);
+                                            if (promotion) {
+                                                const prixReduit = calculateDiscountedPrice(product.prix || 0, promotion);
+                                                if (prixReduit < (product.prix || 0)) {
+                                                    return (
+                                                        <div className="absolute top-2 left-2 z-10">
+                                                            <motion.div
+                                                                initial={{ scale: 0 }}
+                                                                animate={{ scale: 1 }}
+                                                                className="inline-flex items-center gap-1 px-2 py-1 bg-gradient-to-r from-green-500 to-green-600 text-white text-xs font-bold rounded-full shadow-lg"
+                                                            >
+                                                                <Tag className="w-3 h-3" />
+                                                                {formatPromotionText(promotion)}
+                                                            </motion.div>
+                                                        </div>
+                                                    );
+                                                }
+                                            }
+                                            return null;
+                                        })()}
+
                                         {/* Icône ou image placeholder */}
                                         <div className={`w-16 h-16 rounded-lg flex items-center justify-center mb-2 ${
                                             isAvailable 
@@ -203,16 +227,43 @@ const ProductList = memo(({ products, addToCart, ingredientsList }) => {
                                             {product.nom}
                                         </h3>
 
-                                        <motion.span
-                                            className={`text-lg font-bold ${
-                                                isAvailable 
-                                                    ? 'text-success-600 dark:text-success-400' 
-                                                    : 'text-slate-400'
-                                            }`}
-                                            whileHover={isAvailable ? { scale: 1.1 } : {}}
-                                        >
-                                            {formatCurrency(product.prix || 0)}
-                                        </motion.span>
+                                        {(() => {
+                                            const promotion = findBestPromotionForProduct(product, promotions, product.prix || 0);
+                                            const prixInitial = product.prix || 0;
+                                            const prixReduit = promotion ? calculateDiscountedPrice(prixInitial, promotion) : prixInitial;
+                                            
+                                            if (promotion && prixReduit < prixInitial) {
+                                                return (
+                                                    <div className="flex flex-col items-center gap-1">
+                                                        <motion.span
+                                                            className="text-xs text-slate-400 line-through"
+                                                            whileHover={isAvailable ? { scale: 1.05 } : {}}
+                                                        >
+                                                            {formatCurrency(prixInitial)}
+                                                        </motion.span>
+                                                        <motion.span
+                                                            className="text-lg font-bold text-green-600 dark:text-green-400"
+                                                            whileHover={isAvailable ? { scale: 1.1 } : {}}
+                                                        >
+                                                            {formatCurrency(prixReduit)}
+                                                        </motion.span>
+                                                    </div>
+                                                );
+                                            }
+                                            
+                                            return (
+                                                <motion.span
+                                                    className={`text-lg font-bold ${
+                                                        isAvailable 
+                                                            ? 'text-success-600 dark:text-success-400' 
+                                                            : 'text-slate-400'
+                                                    }`}
+                                                    whileHover={isAvailable ? { scale: 1.1 } : {}}
+                                                >
+                                                    {formatCurrency(prixInitial)}
+                                                </motion.span>
+                                            );
+                                        })()}
                                     </div>
 
                                     {/* EFFET DE CLIC */}

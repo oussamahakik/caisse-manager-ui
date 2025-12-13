@@ -4,18 +4,51 @@ import { Trash2, Plus, Minus, X, ShoppingCart, CreditCard, Coins, Tag } from 'lu
 import { toast } from 'sonner';
 import { formatCurrency } from '../utils/formatters';
 import Button from './common/Button/Button';
+import { calculateDiscountedPrice, findBestPromotionForProduct, formatPromotionText } from '../utils/promotions';
 
-const OrderTicket = ({ cart, updateQuantity, finalizeOrder, removeFromCart, clearCart }) => {
+const OrderTicket = ({ cart, updateQuantity, finalizeOrder, removeFromCart, clearCart, promotions = [] }) => {
     const [isCashModalOpen, setIsCashModalOpen] = useState(false);
     const [cashReceived, setCashReceived] = useState(0);
     const [remise, setRemise] = useState(0);
     const [remiseType, setRemiseType] = useState('montant'); // 'montant' ou 'pourcentage'
     const [showRemiseInput, setShowRemiseInput] = useState(false);
 
-    // Calculs avec useMemo pour performance
+    // Calculs avec promotions - Prix réduits
+    const cartWithPromotions = useMemo(() => {
+        // DEBUG : Vérifier les promotions chargées
+        console.log('🔍 Promotions disponibles:', promotions);
+        console.log('🔍 Panier:', cart);
+        
+        return cart.map(item => {
+            const prixInitial = item.prix || 0;
+            
+            // DEBUG pour chaque item
+            console.log(`🔍 Item: ${item.nom}, Catégorie: ${item.categorie}, Prix: ${prixInitial}`);
+            
+            const promotion = findBestPromotionForProduct(item, promotions, prixInitial);
+            
+            if (promotion) {
+                console.log(`✅ Promotion trouvée pour ${item.nom}:`, promotion.nom, formatPromotionText(promotion));
+            } else {
+                console.log(`❌ Aucune promotion pour ${item.nom}`);
+            }
+            
+            const prixReduit = promotion ? calculateDiscountedPrice(prixInitial, promotion) : prixInitial;
+            
+            return {
+                ...item,
+                prixInitial,
+                prixReduit,
+                promotion,
+                prixFinal: prixReduit // Prix à utiliser pour les calculs
+            };
+        });
+    }, [cart, promotions]);
+
+    // Calculs avec useMemo pour performance - Utilise les prix réduits
     const subTotal = useMemo(() => 
-        cart.reduce((sum, item) => sum + ((item.prix || 0) * item.quantity), 0), 
-        [cart]
+        cartWithPromotions.reduce((sum, item) => sum + (item.prixFinal * item.quantity), 0), 
+        [cartWithPromotions]
     );
     
     const remiseAmount = useMemo(() => {
@@ -37,7 +70,8 @@ const OrderTicket = ({ cart, updateQuantity, finalizeOrder, removeFromCart, clea
             toast.error('Le montant reçu doit être supérieur ou égal au total');
             return;
         }
-        finalizeOrder('ESPECES', cashReceived, remiseAmount);
+        // Envoyer les prix réduits au backend
+        finalizeOrder('ESPECES', cashReceived, remiseAmount, cartWithPromotions);
         setIsCashModalOpen(false);
         setCashReceived(0);
         setRemise(0);
@@ -45,7 +79,8 @@ const OrderTicket = ({ cart, updateQuantity, finalizeOrder, removeFromCart, clea
     };
 
     const handleCardPayment = () => {
-        finalizeOrder('CARTE', null, remiseAmount);
+        // Envoyer les prix réduits au backend
+        finalizeOrder('CARTE', null, remiseAmount, cartWithPromotions);
         setRemise(0);
         setShowRemiseInput(false);
     };
@@ -111,7 +146,7 @@ const OrderTicket = ({ cart, updateQuantity, finalizeOrder, removeFromCart, clea
                         </motion.div>
                     ) : (
                         <motion.ul className="space-y-3">
-                            {cart.map((item, index) => (
+                            {cartWithPromotions.map((item, index) => (
                                 <motion.li
                                     key={item.uniqueId || item.id || index}
                                     layout
@@ -134,15 +169,36 @@ const OrderTicket = ({ cart, updateQuantity, finalizeOrder, removeFromCart, clea
 
                                     <div className="flex items-start gap-3">
                                         <div className="flex-1 min-w-0">
-                                            <h4 className="font-semibold text-slate-900 mb-1">{item.nom}</h4>
+                                            <div className="flex items-center gap-2 mb-1">
+                                                <h4 className="font-semibold text-slate-900">{item.nom}</h4>
+                                                {item.promotion && (
+                                                    <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-green-100 text-green-700 text-xs font-semibold rounded-full">
+                                                        <Tag className="w-3 h-3" />
+                                                        {formatPromotionText(item.promotion)}
+                                                    </span>
+                                                )}
+                                            </div>
                                             {item.details && (
                                                 <div className="text-xs text-slate-600 bg-slate-50 px-2 py-1 rounded mt-1 italic">
                                                     {item.details}
                                                 </div>
                                             )}
-                                            <p className="text-sm text-slate-500 mt-1">
-                                                {(item.prix || 0).toFixed(2)} € / unit
-                                            </p>
+                                            <div className="flex items-center gap-2 mt-1">
+                                                {item.promotion && item.prixInitial !== item.prixReduit ? (
+                                                    <>
+                                                        <p className="text-sm text-slate-400 line-through">
+                                                            {item.prixInitial.toFixed(2)} €
+                                                        </p>
+                                                        <p className="text-sm font-semibold text-green-600">
+                                                            {item.prixReduit.toFixed(2)} € / unit
+                                                        </p>
+                                                    </>
+                                                ) : (
+                                                    <p className="text-sm text-slate-500">
+                                                        {(item.prix || 0).toFixed(2)} € / unit
+                                                    </p>
+                                                )}
+                                            </div>
                                         </div>
 
                                         <div className="flex flex-col items-end gap-2">
@@ -170,9 +226,22 @@ const OrderTicket = ({ cart, updateQuantity, finalizeOrder, removeFromCart, clea
                                                     <Plus className="w-3 h-3" />
                                                 </motion.button>
                                             </div>
-                                            <p className="font-bold text-slate-900">
-                                                {((item.prix || 0) * item.quantity).toFixed(2)} €
-                                            </p>
+                                            <div className="text-right">
+                                                {item.promotion && item.prixInitial !== item.prixReduit ? (
+                                                    <>
+                                                        <p className="text-xs text-slate-400 line-through">
+                                                            {(item.prixInitial * item.quantity).toFixed(2)} €
+                                                        </p>
+                                                        <p className="font-bold text-green-600">
+                                                            {(item.prixFinal * item.quantity).toFixed(2)} €
+                                                        </p>
+                                                    </>
+                                                ) : (
+                                                    <p className="font-bold text-slate-900">
+                                                        {(item.prixFinal * item.quantity).toFixed(2)} €
+                                                    </p>
+                                                )}
+                                            </div>
                                         </div>
                                     </div>
                                 </motion.li>
