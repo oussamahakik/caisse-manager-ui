@@ -56,13 +56,17 @@ export const isRequired = (value) => {
   return true;
 };
 
-export default {
+const validators = {
   isValidEmail,
   isValidPassword,
   isValidAmount,
   isValidPositiveNumber,
   isRequired,
 };
+
+export default validators;
+
+
 
 
 

@@ -64,12 +64,16 @@ export const truncate = (text, maxLength = 50) => {
   return `${text.substring(0, maxLength)}...`;
 };
 
-export default {
+const formatters = {
   formatCurrency,
   formatDate,
   formatNumber,
   truncate,
 };
+
+export default formatters;
+
+
 
 
 

@@ -55,6 +55,18 @@ function App() {
     const [showTicket, setShowTicket] = useState(false);
     const [restaurantName, setRestaurantName] = useState('Mon Snack');
     const [showSearch, setShowSearch] = useState(false);
+    const [isDesktop, setIsDesktop] = useState(false);
+
+    // Détecter la taille de l'écran
+    useEffect(() => {
+        const checkScreenSize = () => {
+            setIsDesktop(window.innerWidth >= 1024);
+        };
+        
+        checkScreenSize();
+        window.addEventListener('resize', checkScreenSize);
+        return () => window.removeEventListener('resize', checkScreenSize);
+    }, []);
 
     // Configuration API avec snackId
     useEffect(() => {
@@ -133,7 +145,6 @@ function App() {
                         headers: { 'X-Snack-ID': snackId.toString() }
                     });
                     const promotionsData = response.data || [];
-                    console.log('✅ Promotions chargées:', promotionsData.length, promotionsData);
                     setPromotions(promotionsData);
                 } catch (error) {
                     console.error('Erreur lors du chargement des promotions:', error);
@@ -180,10 +191,10 @@ function App() {
 
     const handleTabChange = useCallback((tabId) => {
         setCurrentTab(tabId);
-        if (window.innerWidth < 1024) {
+        if (!isDesktop) {
             setSidebarOpen(false);
         }
-    }, []);
+    }, [isDesktop]);
 
     const addToCart = useCallback((product) => {
         setCart(prevCart => {
@@ -316,9 +327,9 @@ function App() {
         );
     }
 
-    // LAYOUT GLOBAL - Design Premium SaaS
+    // LAYOUT GLOBAL - Design Enterprise SaaS Responsive
     return (
-        <div className="flex h-screen bg-gray-50 overflow-hidden">
+        <div className="flex h-screen bg-gray-50 dark:bg-slate-900 overflow-hidden">
             <Toaster position="top-right" richColors />
             
             {/* Mobile Overlay */}
@@ -328,30 +339,40 @@ function App() {
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
-                        className="lg:hidden fixed inset-0 bg-black/50 z-40"
+                        className="lg:hidden fixed inset-0 bg-black/50 dark:bg-black/70 backdrop-blur-sm z-40"
                         onClick={() => setSidebarOpen(false)}
                     />
                 )}
             </AnimatePresence>
 
-            {/* Sidebar - Design Premium */}
+            {/* Sidebar - Responsive Design */}
             <motion.aside
                 initial={false}
-                animate={sidebarOpen || window.innerWidth >= 1024 ? "open" : "closed"}
-                className="fixed lg:static inset-y-0 left-0 z-50 w-64 bg-white border-r border-gray-200 flex flex-col shadow-sm"
+                animate={{
+                    x: sidebarOpen || isDesktop ? 0 : -260,
+                }}
+                transition={{ type: "spring", damping: 25, stiffness: 300 }}
+                className="fixed lg:static inset-y-0 left-0 z-50 w-[260px] bg-white dark:bg-slate-800 border-r border-slate-200 dark:border-slate-700 flex flex-col shadow-lg lg:shadow-sm"
             >
                 {/* Logo & Header */}
-                <div className="p-6 border-b border-gray-200">
+                <div className="p-6 border-b border-slate-200 dark:border-slate-700">
                     <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-xl bg-indigo-600 flex items-center justify-center">
+                        <div className="w-10 h-10 rounded-xl bg-indigo-600 dark:bg-indigo-500 flex items-center justify-center shadow-lg">
                             <LayoutDashboard className="w-6 h-6 text-white" />
                         </div>
-                        <div>
-                            <h1 className="font-bold text-gray-900 text-lg">CaisseManager</h1>
-                            <p className="text-xs text-gray-500 truncate max-w-[140px]" title={restaurantName}>
+                        <div className="flex-1 min-w-0">
+                            <h1 className="font-bold text-slate-900 dark:text-slate-100 text-lg">CaisseManager</h1>
+                            <p className="text-xs text-slate-500 dark:text-slate-400 truncate max-w-[140px]" title={restaurantName}>
                                 {restaurantName}
                             </p>
                         </div>
+                        <button
+                            onClick={() => setSidebarOpen(false)}
+                            className="lg:hidden p-1.5 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors"
+                            aria-label="Fermer le menu"
+                        >
+                            <X className="w-5 h-5 text-slate-600 dark:text-slate-400" />
+                        </button>
                     </div>
                 </div>
 
@@ -366,8 +387,8 @@ function App() {
                                 onClick={() => handleTabChange(item.id)}
                                 className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 ${
                                     isActive
-                                        ? 'bg-indigo-50 text-indigo-600 font-semibold'
-                                        : 'text-gray-700 hover:bg-gray-50'
+                                        ? 'bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 font-semibold shadow-sm'
+                                        : 'text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700/50'
                                 }`}
                             >
                                 <Icon className="w-5 h-5" />
@@ -378,19 +399,19 @@ function App() {
                 </nav>
 
                 {/* User Profile & Logout */}
-                <div className="p-4 border-t border-gray-200 space-y-2">
+                <div className="p-4 border-t border-slate-200 dark:border-slate-700 space-y-2">
                     <div className="flex items-center gap-3 px-3 py-2 rounded-xl">
-                        <div className="w-8 h-8 rounded-lg bg-gray-200 flex items-center justify-center">
-                            <User className="w-4 h-4 text-gray-600" />
+                        <div className="w-8 h-8 rounded-lg bg-slate-200 dark:bg-slate-700 flex items-center justify-center">
+                            <User className="w-4 h-4 text-slate-600 dark:text-slate-400" />
                         </div>
                         <div className="flex-1 min-w-0">
-                            <p className="text-sm font-medium text-gray-900 truncate">{role || 'Utilisateur'}</p>
-                            <p className="text-xs text-gray-500 truncate">{restaurantName}</p>
+                            <p className="text-sm font-medium text-slate-900 dark:text-slate-100 truncate">{role || 'Utilisateur'}</p>
+                            <p className="text-xs text-slate-500 dark:text-slate-400 truncate">{restaurantName}</p>
                         </div>
                     </div>
                     <button
                         onClick={handleLogout}
-                        className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-gray-700 hover:bg-gray-50 transition-colors"
+                        className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors"
                     >
                         <LogOut className="w-5 h-5" />
                         <span className="text-sm">Déconnexion</span>
@@ -399,26 +420,26 @@ function App() {
             </motion.aside>
 
             {/* Main Content */}
-            <main className="flex-1 flex flex-col overflow-hidden">
+            <main className="flex-1 flex flex-col overflow-hidden bg-gray-50 dark:bg-slate-900">
                 {/* Top Bar */}
-                <div className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
+                <div className="bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 px-4 sm:px-6 py-4 flex items-center justify-between sticky top-0 z-30 shadow-sm">
                     <div className="flex items-center gap-4">
                         <button
                             onClick={() => setSidebarOpen(!sidebarOpen)}
-                            className="lg:hidden p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                            className="lg:hidden p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-xl transition-colors"
                             aria-label="Menu"
                         >
-                            <MenuIcon className="w-5 h-5 text-gray-700" />
+                            <MenuIcon className="w-5 h-5 text-slate-700 dark:text-slate-300" />
                         </button>
-                        <h2 className="text-xl font-bold text-gray-900">
+                        <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100">
                             {navItems.find(item => item.id === currentTab)?.label || 'CaisseManager'}
                         </h2>
                     </div>
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-2 sm:gap-3">
                         {!isSuperAdmin && (
                             <button
                                 onClick={() => setShowSearch(true)}
-                                className="flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-xl transition-colors text-sm font-medium text-gray-700"
+                                className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 rounded-xl transition-colors text-sm font-medium text-slate-700 dark:text-slate-300"
                             >
                                 <Search className="w-4 h-4" />
                                 <span className="hidden sm:inline">Recherche</span>
@@ -439,7 +460,7 @@ function App() {
                                 animate={{ opacity: 1, y: 0 }}
                                 exit={{ opacity: 0, y: -20 }}
                                 transition={{ duration: 0.2 }}
-                                className="h-full overflow-y-auto p-8"
+                                className="h-full overflow-y-auto p-4 sm:p-6 lg:p-8"
                             >
                                 <Suspense fallback={<div className="flex items-center justify-center h-full"><Spinner size="lg" /></div>}>
                                     <SuperAdminDashboard token={token} onLogout={handleLogout} />
@@ -454,11 +475,11 @@ function App() {
                                 animate={{ opacity: 1, y: 0 }}
                                 exit={{ opacity: 0, y: -20 }}
                                 transition={{ duration: 0.2 }}
-                                className="h-full flex gap-6 p-6"
+                                className="h-full flex flex-col lg:flex-row gap-4 lg:gap-6 p-4 lg:p-6"
                             >
-                                <div className="flex-[2] overflow-y-auto">
+                                <div className="flex-1 lg:flex-[2] overflow-y-auto min-h-0">
                                     {productsLoading ? (
-                                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                                        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
                                             {[...Array(8)].map((_, i) => (
                                                 <ProductCardSkeleton key={i} />
                                             ))}
@@ -474,7 +495,7 @@ function App() {
                                         </Suspense>
                                     )}
                                 </div>
-                                <div className="flex-1 overflow-y-auto">
+                                <div className="lg:w-96 lg:flex-shrink-0 overflow-y-auto min-h-0">
                                     <Suspense fallback={<Spinner size="lg" />}>
                                         <OrderTicket 
                                             cart={cart} 
@@ -496,7 +517,7 @@ function App() {
                                 animate={{ opacity: 1, y: 0 }}
                                 exit={{ opacity: 0, y: -20 }}
                                 transition={{ duration: 0.2 }}
-                                className="h-full overflow-y-auto p-8"
+                                className="h-full overflow-y-auto p-4 sm:p-6 lg:p-8"
                             >
                                 <Suspense fallback={<Spinner size="lg" />}>
                                     <MenuAdmin 
@@ -516,7 +537,7 @@ function App() {
                                 animate={{ opacity: 1, y: 0 }}
                                 exit={{ opacity: 0, y: -20 }}
                                 transition={{ duration: 0.2 }}
-                                className="h-full overflow-y-auto p-8"
+                                className="h-full overflow-y-auto p-4 sm:p-6 lg:p-8"
                             >
                                 <Suspense fallback={<Spinner size="lg" />}>
                                     <IngredientsAdmin 
@@ -551,7 +572,7 @@ function App() {
                                 animate={{ opacity: 1, y: 0 }}
                                 exit={{ opacity: 0, y: -20 }}
                                 transition={{ duration: 0.2 }}
-                                className="h-full overflow-y-auto p-8"
+                                className="h-full overflow-y-auto p-4 sm:p-6 lg:p-8"
                             >
                                 <Suspense fallback={<Spinner size="lg" />}>
                                     <RapportDashboard token={token} snackId={snackId} />
@@ -566,7 +587,7 @@ function App() {
                                 animate={{ opacity: 1, y: 0 }}
                                 exit={{ opacity: 0, y: -20 }}
                                 transition={{ duration: 0.2 }}
-                                className="h-full overflow-y-auto p-8"
+                                className="h-full overflow-y-auto p-4 sm:p-6 lg:p-8"
                             >
                                 <Suspense fallback={<Spinner size="lg" />}>
                                     <UserManagement token={token} snackId={snackId} />
@@ -581,7 +602,7 @@ function App() {
                                 animate={{ opacity: 1, y: 0 }}
                                 exit={{ opacity: 0, y: -20 }}
                                 transition={{ duration: 0.2 }}
-                                className="h-full overflow-y-auto p-8"
+                                className="h-full overflow-y-auto p-4 sm:p-6 lg:p-8"
                             >
                                 <Suspense fallback={<Spinner size="lg" />}>
                                     <PromotionsManager token={token} snackId={snackId} />
@@ -596,7 +617,7 @@ function App() {
                                 animate={{ opacity: 1, y: 0 }}
                                 exit={{ opacity: 0, y: -20 }}
                                 transition={{ duration: 0.2 }}
-                                className="h-full overflow-y-auto p-8"
+                                className="h-full overflow-y-auto p-4 sm:p-6 lg:p-8"
                             >
                                 <Suspense fallback={<Spinner size="lg" />}>
                                     <PrintersManager token={token} snackId={snackId} />

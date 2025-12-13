@@ -3,8 +3,6 @@ import { motion } from 'framer-motion';
 import { LayoutDashboard, Lock, User } from 'lucide-react';
 import { toast } from 'sonner';
 import api from '../services/api';
-import Input from './common/Input/Input';
-import Button from './common/Button/Button';
 import { isRequired } from '../utils/validators';
 
 const Login = ({ onLogin }) => {
@@ -50,71 +48,55 @@ const Login = ({ onLogin }) => {
     };
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 via-purple-900 to-slate-900 dark:from-black dark:via-slate-950 dark:to-black flex items-center justify-center p-4 transition-all duration-500 relative overflow-hidden">
-            {/* Animated background */}
-            <div className="absolute inset-0 overflow-hidden">
-                <div className="absolute top-0 left-0 w-[600px] h-[600px] bg-blue-500/20 rounded-full blur-3xl animate-pulse"></div>
-                <div className="absolute bottom-0 right-0 w-[600px] h-[600px] bg-purple-500/20 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }}></div>
-                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-indigo-500/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '2s' }}></div>
-            </div>
-            
-            {/* Split Screen Design */}
+        <div className="min-h-screen bg-gray-50 dark:bg-slate-900 flex items-center justify-center p-4">
+            {/* Split Screen Design - Enterprise SaaS */}
             <motion.div
-                initial={{ opacity: 0, scale: 0.9, y: 20 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
                 transition={{ duration: 0.3, ease: "easeOut" }}
-                className="w-full max-w-6xl glass-strong rounded-3xl shadow-2xl overflow-hidden flex flex-col md:flex-row transition-all duration-500 relative z-10 border border-white/20 dark:border-slate-700/50"
+                className="w-full max-w-6xl bg-white dark:bg-slate-800 rounded-2xl shadow-xl overflow-hidden flex flex-col lg:flex-row"
             >
-                {/* Left Side - Branding */}
+                {/* Left Side - Branding (Desktop only) */}
                 <motion.div
                     initial={{ x: -50, opacity: 0 }}
                     animate={{ x: 0, opacity: 1 }}
-                    transition={{ delay: 0.2, duration: 0.6 }}
-                    className="hidden md:flex md:w-1/2 bg-gradient-to-br from-blue-600 via-purple-600 to-pink-600 p-12 flex-col justify-center items-center text-white relative overflow-hidden"
+                    transition={{ delay: 0.2, duration: 0.5 }}
+                    className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-indigo-600 to-indigo-800 dark:from-indigo-700 dark:to-indigo-900 p-12 flex-col justify-center items-center text-white relative overflow-hidden"
                 >
-                    <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent"></div>
-                    <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,_rgba(255,255,255,0.1),transparent_50%)]"></div>
+                    {/* Overlay avec pattern */}
+                    <div className="absolute inset-0 bg-black/10"></div>
+                    <div 
+                        className="absolute inset-0 opacity-20"
+                        style={{
+                            backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`
+                        }}
+                    ></div>
                     
                     <motion.div 
-                        whileHover={{ scale: 1.1, rotate: 5 }}
-                        className="w-24 h-24 bg-white/20 rounded-3xl flex items-center justify-center mb-8 backdrop-blur-xl shadow-2xl border border-white/30 relative z-10"
+                        whileHover={{ scale: 1.05 }}
+                        className="w-20 h-20 bg-white/20 rounded-2xl flex items-center justify-center mb-8 backdrop-blur-sm shadow-lg relative z-10"
                     >
-                        <LayoutDashboard className="w-14 h-14 drop-shadow-2xl" />
+                        <LayoutDashboard className="w-12 h-12" />
                     </motion.div>
-                    <h1 className="text-5xl font-extrabold mb-4 relative z-10 tracking-tight drop-shadow-lg">
+                    <h1 className="text-4xl font-bold mb-4 relative z-10 text-center">
                         CaisseManager
                     </h1>
-                    <p className="text-blue-50 text-lg text-center max-w-md font-medium relative z-10 mb-8">
+                    <p className="text-indigo-100 text-lg text-center max-w-sm font-medium relative z-10 mb-8">
                         Solution de gestion de caisse moderne pour restaurants et snacks
                     </p>
-                    <div className="mt-4 space-y-4 text-blue-50 relative z-10">
-                        <motion.div 
-                            initial={{ x: -20, opacity: 0 }}
-                            animate={{ x: 0, opacity: 1 }}
-                            transition={{ delay: 0.4 }}
-                            className="flex items-center gap-3"
-                        >
-                            <div className="w-3 h-3 bg-white rounded-full shadow-lg"></div>
+                    <div className="mt-4 space-y-3 text-indigo-100 relative z-10">
+                        <div className="flex items-center gap-3">
+                            <div className="w-2 h-2 bg-white rounded-full"></div>
                             <span className="font-medium">Gestion de commandes en temps réel</span>
-                        </motion.div>
-                        <motion.div 
-                            initial={{ x: -20, opacity: 0 }}
-                            animate={{ x: 0, opacity: 1 }}
-                            transition={{ delay: 0.5 }}
-                            className="flex items-center gap-3"
-                        >
-                            <div className="w-3 h-3 bg-white rounded-full shadow-lg"></div>
+                        </div>
+                        <div className="flex items-center gap-3">
+                            <div className="w-2 h-2 bg-white rounded-full"></div>
                             <span className="font-medium">Interface intuitive et rapide</span>
-                        </motion.div>
-                        <motion.div 
-                            initial={{ x: -20, opacity: 0 }}
-                            animate={{ x: 0, opacity: 1 }}
-                            transition={{ delay: 0.6 }}
-                            className="flex items-center gap-3"
-                        >
-                            <div className="w-3 h-3 bg-white rounded-full shadow-lg"></div>
+                        </div>
+                        <div className="flex items-center gap-3">
+                            <div className="w-2 h-2 bg-white rounded-full"></div>
                             <span className="font-medium">Rapports et statistiques détaillés</span>
-                        </motion.div>
+                        </div>
                     </div>
                 </motion.div>
 
@@ -122,75 +104,81 @@ const Login = ({ onLogin }) => {
                 <motion.div
                     initial={{ x: 50, opacity: 0 }}
                     animate={{ x: 0, opacity: 1 }}
-                    transition={{ delay: 0.3, duration: 0.6 }}
-                    className="w-full md:w-1/2 p-8 md:p-12 flex flex-col justify-center bg-gradient-to-br from-white to-slate-50 dark:from-slate-800 dark:to-slate-900 relative"
+                    transition={{ delay: 0.3, duration: 0.5 }}
+                    className="w-full lg:w-1/2 p-8 sm:p-12 flex flex-col justify-center bg-white dark:bg-slate-800"
                 >
                     {/* Mobile Logo */}
-                    <motion.div
-                        initial={{ scale: 0, rotate: -180 }}
-                        animate={{ scale: 1, rotate: 0 }}
-                        transition={{ delay: 0.2, duration: 0.3, ease: "easeOut" }}
-                        className="md:hidden flex items-center justify-center mb-8"
-                    >
-                        <div className="w-20 h-20 bg-gradient-to-br from-blue-600 via-purple-600 to-pink-600 rounded-3xl flex items-center justify-center shadow-2xl glow">
-                            <LayoutDashboard className="w-12 h-12 text-white drop-shadow-2xl" />
+                    <div className="lg:hidden flex items-center justify-center mb-8">
+                        <div className="w-16 h-16 bg-indigo-600 dark:bg-indigo-500 rounded-xl flex items-center justify-center shadow-lg">
+                            <LayoutDashboard className="w-10 h-10 text-white" />
                         </div>
-                    </motion.div>
+                    </div>
 
-                    <motion.div
-                        initial={{ y: 20, opacity: 0 }}
-                        animate={{ y: 0, opacity: 1 }}
-                        transition={{ delay: 0.5 }}
-                        className="mb-8"
-                    >
-                        <h2 className="text-4xl font-extrabold gradient-text mb-3 tracking-tight">Connexion</h2>
-                        <p className="text-slate-600 dark:text-slate-400 font-medium">Connectez-vous à votre compte CaisseManager</p>
-                    </motion.div>
+                    <div className="mb-8">
+                        <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 dark:text-slate-100 mb-2">Connexion</h2>
+                        <p className="text-slate-600 dark:text-slate-400">Connectez-vous à votre compte</p>
+                    </div>
 
-                    <motion.form
-                        initial={{ y: 20, opacity: 0 }}
-                        animate={{ y: 0, opacity: 1 }}
-                        transition={{ delay: 0.6 }}
-                        onSubmit={handleSubmit}
-                        className="space-y-6"
-                    >
+                    <form onSubmit={handleSubmit} className="space-y-5">
                         {/* Username Field */}
-                        <Input
-                            id="username"
-                            label="Pseudo"
-                            type="text"
-                            value={username}
-                            onChange={(e) => {
-                                setUsername(e.target.value);
-                                if (errors.username) {
-                                    setErrors({ ...errors, username: '' });
-                                }
-                            }}
-                            placeholder="Ex: admin"
-                            icon={<User className="h-5 w-5" />}
-                            error={errors.username}
-                            disabled={isLoading}
-                            required
-                        />
+                        <div>
+                            <label htmlFor="username" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                                Pseudo
+                            </label>
+                            <div className="relative">
+                                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                    <User className="h-5 w-5 text-slate-400" />
+                                </div>
+                                <input
+                                    id="username"
+                                    type="text"
+                                    value={username}
+                                    onChange={(e) => {
+                                        setUsername(e.target.value);
+                                        if (errors.username) {
+                                            setErrors({ ...errors, username: '' });
+                                        }
+                                    }}
+                                    placeholder="Ex: admin"
+                                    disabled={isLoading}
+                                    required
+                                    className="block w-full pl-10 pr-3 py-2.5 border border-slate-300 dark:border-slate-600 rounded-xl bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 focus:border-transparent transition-all"
+                                />
+                            </div>
+                            {errors.username && (
+                                <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.username}</p>
+                            )}
+                        </div>
 
                         {/* Password Field */}
-                        <Input
-                            id="password"
-                            label="Mot de passe"
-                            type="password"
-                            value={password}
-                            onChange={(e) => {
-                                setPassword(e.target.value);
-                                if (errors.password) {
-                                    setErrors({ ...errors, password: '' });
-                                }
-                            }}
-                            placeholder="Ex: 1234"
-                            icon={<Lock className="h-5 w-5" />}
-                            error={errors.password}
-                            disabled={isLoading}
-                            required
-                        />
+                        <div>
+                            <label htmlFor="password" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                                Mot de passe
+                            </label>
+                            <div className="relative">
+                                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                    <Lock className="h-5 w-5 text-slate-400" />
+                                </div>
+                                <input
+                                    id="password"
+                                    type="password"
+                                    value={password}
+                                    onChange={(e) => {
+                                        setPassword(e.target.value);
+                                        if (errors.password) {
+                                            setErrors({ ...errors, password: '' });
+                                        }
+                                    }}
+                                    placeholder="Ex: 1234"
+                                    disabled={isLoading}
+                                    required
+                                    className="block w-full pl-10 pr-3 py-2.5 border border-slate-300 dark:border-slate-600 rounded-xl bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 focus:border-transparent transition-all"
+                                />
+                            </div>
+                            {errors.password && (
+                                <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.password}</p>
+                            )}
+                        </div>
 
                         {/* Remember Me */}
                         <div className="flex items-center">
@@ -199,7 +187,7 @@ const Login = ({ onLogin }) => {
                                 type="checkbox"
                                 checked={rememberMe}
                                 onChange={(e) => setRememberMe(e.target.checked)}
-                                className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-slate-300 rounded"
+                                className="h-4 w-4 text-indigo-600 dark:text-indigo-500 focus:ring-indigo-500 dark:focus:ring-indigo-400 border-slate-300 dark:border-slate-600 rounded"
                                 disabled={isLoading}
                             />
                             <label htmlFor="remember-me" className="ml-2 block text-sm text-slate-700 dark:text-slate-300">
@@ -209,39 +197,35 @@ const Login = ({ onLogin }) => {
 
                         {/* Error Message */}
                         {errors.submit && (
-                            <motion.div
-                                initial={{ opacity: 0, y: -10 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                className="bg-error-50 border border-error-200 text-error-700 dark:bg-error-900/20 dark:border-error-800 dark:text-error-400 px-4 py-3 rounded-lg text-sm"
-                                role="alert"
-                            >
+                            <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 px-4 py-3 rounded-xl text-sm" role="alert">
                                 {errors.submit}
-                            </motion.div>
+                            </div>
                         )}
 
                         {/* Submit Button */}
-                        <Button
+                        <button
                             type="submit"
-                            variant="primary"
-                            size="lg"
                             disabled={isLoading}
-                            loading={isLoading}
-                            className="w-full"
+                            className="w-full flex items-center justify-center gap-2 bg-indigo-600 dark:bg-indigo-500 hover:bg-indigo-700 dark:hover:bg-indigo-600 text-white font-semibold py-3 px-4 rounded-xl shadow-lg hover:shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                         >
-                            <Lock className="w-5 h-5 mr-2" />
-                            Se Connecter
-                        </Button>
-                    </motion.form>
+                            {isLoading ? (
+                                <>
+                                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                                    <span>Connexion...</span>
+                                </>
+                            ) : (
+                                <>
+                                    <Lock className="w-5 h-5" />
+                                    <span>Se Connecter</span>
+                                </>
+                            )}
+                        </button>
+                    </form>
 
                     {/* Footer */}
-                    <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        transition={{ delay: 0.8 }}
-                        className="mt-8 text-center text-sm text-slate-500"
-                    >
+                    <div className="mt-8 text-center text-sm text-slate-500 dark:text-slate-400">
                         <p>© 2024 CaisseManager. Tous droits réservés.</p>
-                    </motion.div>
+                    </div>
                 </motion.div>
             </motion.div>
         </div>

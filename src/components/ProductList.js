@@ -70,25 +70,25 @@ const ProductList = memo(({ products, addToCart, ingredientsList, promotions = [
     }), []);
 
     return (
-        <div className="h-full flex flex-col">
-            {/* BARRE DE RECHERCHE ET FILTRES */}
-            <div className="mb-6 space-y-4">
+        <div className="h-full flex flex-col bg-gray-50 dark:bg-slate-900">
+            {/* BARRE DE RECHERCHE ET FILTRES - Sticky */}
+            <div className="sticky top-0 z-20 bg-gray-50 dark:bg-slate-900 pb-4 space-y-4">
                 {/* Recherche */}
                 <div className="relative">
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <Search className="h-5 w-5 text-slate-400" />
+                        <Search className="h-5 w-5 text-slate-400 dark:text-slate-500" />
                     </div>
                     <input
                         type="text"
                         placeholder="Rechercher un produit..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        className="block w-full pl-10 pr-3 py-2.5 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all duration-200 outline-none bg-white dark:bg-slate-700 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500"
+                        className="block w-full pl-10 pr-3 py-2.5 border border-slate-300 dark:border-slate-600 rounded-xl focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 focus:border-transparent transition-all duration-200 outline-none bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 shadow-sm"
                     />
                 </div>
 
-                {/* Filtres par catégorie */}
-                <div className="flex gap-2 overflow-x-auto pb-2 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+                {/* Filtres par catégorie - Pills horizontaux défilables */}
+                <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
                     {categories.map((category, index) => {
                         const isActive = filter === category;
                         return (
@@ -102,8 +102,8 @@ const ProductList = memo(({ products, addToCart, ingredientsList, promotions = [
                                 onClick={() => setFilter(category)}
                                 className={`px-4 py-2 rounded-full font-semibold text-sm whitespace-nowrap transition-all duration-200 ${
                                     isActive
-                                        ? 'bg-gradient-to-r from-primary-500 to-primary-600 text-white shadow-lg'
-                                        : 'bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600'
+                                        ? 'bg-indigo-600 dark:bg-indigo-500 text-white shadow-lg'
+                                        : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700'
                                 }`}
                             >
                                 {category === 'all' ? 'TOUT' : category.toUpperCase()}
@@ -113,23 +113,23 @@ const ProductList = memo(({ products, addToCart, ingredientsList, promotions = [
                 </div>
             </div>
 
-            {/* GRILLE DE PRODUITS */}
+            {/* GRILLE DE PRODUITS - Responsive Grid */}
             <div className="flex-1 overflow-y-auto">
                 {filteredProducts.length === 0 ? (
                     <motion.div
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
-                        className="flex flex-col items-center justify-center h-full text-slate-400"
+                        className="flex flex-col items-center justify-center h-full text-slate-400 dark:text-slate-500"
                     >
                         <Package className="w-16 h-16 mb-4 opacity-50" />
-                        <p>Aucun produit disponible</p>
+                        <p className="text-slate-600 dark:text-slate-400">Aucun produit disponible</p>
                     </motion.div>
                 ) : (
                     <motion.div
                         variants={containerVariants}
                         initial="hidden"
                         animate="visible"
-                        className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4"
+                        className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4"
                     >
                         {filteredProducts.map((product, index) => {
                             const isAvailable = product.disponible !== false;
@@ -146,10 +146,10 @@ const ProductList = memo(({ products, addToCart, ingredientsList, promotions = [
                                     whileTap={{ scale: 0.97 }}
                                     onClick={() => handleProductClick(product, isAvailable)}
                                     disabled={!isAvailable}
-                                    className={`relative p-4 rounded-xl text-center transition-all duration-200 ${
+                                    className={`relative p-4 rounded-xl text-center transition-all duration-200 active:scale-95 ${
                                         isAvailable
-                                            ? 'bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 hover:border-primary-500 dark:hover:border-primary-500 hover:shadow-lg'
-                                            : 'bg-slate-100 dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 opacity-60 cursor-not-allowed'
+                                            ? 'bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:border-indigo-500 dark:hover:border-indigo-400 hover:shadow-lg shadow-sm'
+                                            : 'bg-slate-100 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 opacity-60 cursor-not-allowed'
                                     }`}
                                 >
                                     {/* BADGE ÉPUISÉ */}
@@ -213,16 +213,16 @@ const ProductList = memo(({ products, addToCart, ingredientsList, promotions = [
                                         })()}
 
                                         {/* Icône ou image placeholder */}
-                                        <div className={`w-16 h-16 rounded-lg flex items-center justify-center mb-2 ${
+                                        <div className={`w-14 h-14 sm:w-16 sm:h-16 rounded-xl flex items-center justify-center mb-2 ${
                                             isAvailable 
-                                                ? 'bg-gradient-to-br from-primary-100 to-primary-200 dark:from-primary-900/30 dark:to-primary-800/30 text-primary-600 dark:text-primary-400' 
+                                                ? 'bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400' 
                                                 : 'bg-slate-200 dark:bg-slate-700 text-slate-400'
                                         }`}>
-                                            <Package className="w-8 h-8" />
+                                            <Package className="w-7 h-7 sm:w-8 sm:h-8" />
                                         </div>
 
-                                        <h3 className={`font-semibold text-sm leading-tight ${
-                                            isAvailable ? 'text-slate-900 dark:text-white' : 'text-slate-500 dark:text-slate-400'
+                                        <h3 className={`font-bold text-xs sm:text-sm leading-tight mb-1 ${
+                                            isAvailable ? 'text-slate-900 dark:text-slate-100' : 'text-slate-500 dark:text-slate-400'
                                         }`}>
                                             {product.nom}
                                         </h3>
@@ -253,9 +253,9 @@ const ProductList = memo(({ products, addToCart, ingredientsList, promotions = [
                                             
                                             return (
                                                 <motion.span
-                                                    className={`text-lg font-bold ${
+                                                    className={`text-base sm:text-lg font-bold ${
                                                         isAvailable 
-                                                            ? 'text-success-600 dark:text-success-400' 
+                                                            ? 'text-green-600 dark:text-green-400' 
                                                             : 'text-slate-400'
                                                     }`}
                                                     whileHover={isAvailable ? { scale: 1.1 } : {}}
