@@ -1,0 +1,80 @@
+{
+  "common": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "add": "Add",
+    "search": "Search",
+    "filter": "Filter",
+    "export": "Export",
+    "close": "Close",
+    "confirm": "Confirm",
+    "loading": "Loading...",
+    "error": "Error",
+    "success": "Success"
+  },
+  "nav": {
+    "caisse": "Cash Register",
+    "menu": "Menu",
+    "ingredients": "Ingredients",
+    "cuisine": "Kitchen",
+    "rapports": "Reports",
+    "utilisateurs": "Users",
+    "dashboard": "Dashboard",
+    "logout": "Logout"
+  },
+  "plans": {
+    "title": "Plans Management",
+    "create": "Create a plan",
+    "edit": "Edit plan",
+    "name": "Name",
+    "price": "Monthly price",
+    "description": "Description",
+    "maxRestaurants": "Max restaurants",
+    "maxUsers": "Max users",
+    "active": "Active",
+    "assign": "Assign a plan"
+  },
+  "promotions": {
+    "title": "Promotions",
+    "create": "Create promotion",
+    "edit": "Edit promotion",
+    "name": "Name",
+    "description": "Description",
+    "type": "Type",
+    "value": "Value",
+    "startDate": "Start date",
+    "endDate": "End date",
+    "code": "Promo code",
+    "active": "Active",
+    "product": "Product",
+    "category": "Category",
+    "maxUses": "Max uses"
+  },
+  "printers": {
+    "title": "Printers",
+    "create": "Add printer",
+    "edit": "Edit printer",
+    "name": "Name",
+    "type": "Type",
+    "path": "Path",
+    "active": "Active",
+    "description": "Description",
+    "paperWidth": "Paper width (mm)",
+    "copies": "Copies",
+    "autoPrint": "Auto print",
+    "ticketType": "Ticket type",
+    "test": "Test print"
+  },
+  "logs": {
+    "title": "Logs",
+    "export": "Export logs",
+    "level": "Level",
+    "category": "Category",
+    "dateRange": "Date range",
+    "all": "All"
+  }
+}
+
+

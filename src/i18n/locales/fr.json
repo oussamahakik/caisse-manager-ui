@@ -1,0 +1,80 @@
+{
+  "common": {
+    "save": "Enregistrer",
+    "cancel": "Annuler",
+    "delete": "Supprimer",
+    "edit": "Modifier",
+    "add": "Ajouter",
+    "search": "Rechercher",
+    "filter": "Filtrer",
+    "export": "Exporter",
+    "close": "Fermer",
+    "confirm": "Confirmer",
+    "loading": "Chargement...",
+    "error": "Erreur",
+    "success": "Succès"
+  },
+  "nav": {
+    "caisse": "Caisse",
+    "menu": "Menu",
+    "ingredients": "Ingrédients",
+    "cuisine": "Cuisine",
+    "rapports": "Rapports",
+    "utilisateurs": "Utilisateurs",
+    "dashboard": "Tableau de bord",
+    "logout": "Déconnexion"
+  },
+  "plans": {
+    "title": "Gestion des Plans",
+    "create": "Créer un plan",
+    "edit": "Modifier le plan",
+    "name": "Nom",
+    "price": "Prix mensuel",
+    "description": "Description",
+    "maxRestaurants": "Nombre max de restaurants",
+    "maxUsers": "Nombre max d'utilisateurs",
+    "active": "Actif",
+    "assign": "Attribuer un plan"
+  },
+  "promotions": {
+    "title": "Promotions",
+    "create": "Créer une promotion",
+    "edit": "Modifier la promotion",
+    "name": "Nom",
+    "description": "Description",
+    "type": "Type",
+    "value": "Valeur",
+    "startDate": "Date de début",
+    "endDate": "Date de fin",
+    "code": "Code promo",
+    "active": "Actif",
+    "product": "Produit",
+    "category": "Catégorie",
+    "maxUses": "Utilisations max"
+  },
+  "printers": {
+    "title": "Imprimantes",
+    "create": "Ajouter une imprimante",
+    "edit": "Modifier l'imprimante",
+    "name": "Nom",
+    "type": "Type",
+    "path": "Chemin",
+    "active": "Actif",
+    "description": "Description",
+    "paperWidth": "Largeur du papier (mm)",
+    "copies": "Copies",
+    "autoPrint": "Impression automatique",
+    "ticketType": "Type de ticket",
+    "test": "Tester l'impression"
+  },
+  "logs": {
+    "title": "Logs",
+    "export": "Exporter les logs",
+    "level": "Niveau",
+    "category": "Catégorie",
+    "dateRange": "Période",
+    "all": "Tous"
+  }
+}
+
+
