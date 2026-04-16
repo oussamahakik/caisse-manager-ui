@@ -1,9 +1,10 @@
 import React, { useState, useEffect, memo } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, Edit2, Trash2, X, Save } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { Plus, Edit2, Trash2, Save } from 'lucide-react';
 import { toast } from 'sonner';
 import api from '../services/api';
 import { t } from '../i18n';
+import Modal from './common/Modal/Modal';
 
 const PlansManagement = memo(({ token }) => {
     const [plans, setPlans] = useState([]);
@@ -76,15 +77,11 @@ const PlansManagement = memo(({ token }) => {
                 actif: formData.actif !== undefined ? formData.actif : true
             };
 
-            console.log('Payload envoyé:', payload); // Debug
-
             if (isEditMode) {
-                const response = await api.put(`/api/plans/${selectedPlan.id}`, payload);
-                console.log('Réponse serveur:', response.data); // Debug
+                await api.put(`/api/plans/${selectedPlan.id}`, payload);
                 toast.success('Plan modifié avec succès');
             } else {
-                const response = await api.post('/api/plans', payload);
-                console.log('Réponse serveur:', response.data); // Debug
+                await api.post('/api/plans', payload);
                 toast.success('Plan créé avec succès');
             }
             setIsModalOpen(false);
@@ -105,7 +102,6 @@ const PlansManagement = memo(({ token }) => {
             } else {
                 toast.error('Erreur lors de l\'enregistrement du plan');
             }
-            console.error('Erreur détaillée:', error);
         }
     };
 
@@ -225,115 +221,90 @@ const PlansManagement = memo(({ token }) => {
                 </div>
             )}
 
-            <AnimatePresence>
-                {isModalOpen && (
-                    <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
-                        onClick={() => setIsModalOpen(false)}
-                    >
-                        <motion.div
-                            initial={{ scale: 0.9, opacity: 0 }}
-                            animate={{ scale: 1, opacity: 1 }}
-                            exit={{ scale: 0.9, opacity: 0 }}
-                            onClick={(e) => e.stopPropagation()}
-                            className="glass-strong rounded-3xl p-6 max-w-2xl w-full border border-blue-200/50 dark:border-blue-500/30 max-h-[90vh] overflow-y-auto"
+            <Modal
+                isOpen={isModalOpen}
+                onClose={() => setIsModalOpen(false)}
+                title={isEditMode ? t('plans.edit') : t('plans.create')}
+                size="lg"
+            >
+                <form onSubmit={handleSubmit} className="space-y-4">
+                    <div>
+                        <label className="form-label">{t('plans.name')}</label>
+                        <input
+                            type="text"
+                            value={formData.nom}
+                            onChange={(e) => setFormData({ ...formData, nom: e.target.value })}
+                            className="form-input"
+                            required
+                        />
+                    </div>
+                    <div>
+                        <label className="form-label">{t('plans.price')}</label>
+                        <input
+                            type="number"
+                            step="0.01"
+                            value={formData.prixMensuel}
+                            onChange={(e) => setFormData({ ...formData, prixMensuel: e.target.value })}
+                            className="form-input"
+                            required
+                        />
+                    </div>
+                    <div>
+                        <label className="form-label">{t('plans.description')}</label>
+                        <textarea
+                            value={formData.description}
+                            onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                            className="form-textarea"
+                            rows="3"
+                        />
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                        <div>
+                            <label className="form-label">{t('plans.maxRestaurants')}</label>
+                            <input
+                                type="number"
+                                value={formData.nombreRestaurantsMax}
+                                onChange={(e) => setFormData({ ...formData, nombreRestaurantsMax: e.target.value })}
+                                className="form-input"
+                            />
+                        </div>
+                        <div>
+                            <label className="form-label">{t('plans.maxUsers')}</label>
+                            <input
+                                type="number"
+                                value={formData.nombreUtilisateursMax}
+                                onChange={(e) => setFormData({ ...formData, nombreUtilisateursMax: e.target.value })}
+                                className="form-input"
+                            />
+                        </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <input
+                            type="checkbox"
+                            checked={formData.actif}
+                            onChange={(e) => setFormData({ ...formData, actif: e.target.checked })}
+                            className="w-4 h-4"
+                        />
+                        <label className="text-sm font-medium">{t('plans.active')}</label>
+                    </div>
+                    <div className="modal-footer">
+                        <button
+                            type="submit"
+                            className="btn-primary flex-1"
                         >
-                            <div className="flex justify-between items-center mb-4">
-                                <h3 className="text-xl font-bold gradient-text">
-                                    {isEditMode ? t('plans.edit') : t('plans.create')}
-                                </h3>
-                                <button onClick={() => setIsModalOpen(false)}>
-                                    <X className="w-5 h-5" />
-                                </button>
-                            </div>
-                            <form onSubmit={handleSubmit} className="space-y-4">
-                                <div>
-                                    <label className="block text-sm font-medium mb-2">{t('plans.name')}</label>
-                                    <input
-                                        type="text"
-                                        value={formData.nom}
-                                        onChange={(e) => setFormData({ ...formData, nom: e.target.value })}
-                                        className="w-full px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700"
-                                        required
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium mb-2">{t('plans.price')}</label>
-                                    <input
-                                        type="number"
-                                        step="0.01"
-                                        value={formData.prixMensuel}
-                                        onChange={(e) => setFormData({ ...formData, prixMensuel: e.target.value })}
-                                        className="w-full px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700"
-                                        required
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium mb-2">{t('plans.description')}</label>
-                                    <textarea
-                                        value={formData.description}
-                                        onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                                        className="w-full px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700"
-                                        rows="3"
-                                    />
-                                </div>
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div>
-                                        <label className="block text-sm font-medium mb-2">{t('plans.maxRestaurants')}</label>
-                                        <input
-                                            type="number"
-                                            value={formData.nombreRestaurantsMax}
-                                            onChange={(e) => setFormData({ ...formData, nombreRestaurantsMax: e.target.value })}
-                                            className="w-full px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700"
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="block text-sm font-medium mb-2">{t('plans.maxUsers')}</label>
-                                        <input
-                                            type="number"
-                                            value={formData.nombreUtilisateursMax}
-                                            onChange={(e) => setFormData({ ...formData, nombreUtilisateursMax: e.target.value })}
-                                            className="w-full px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700"
-                                        />
-                                    </div>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                    <input
-                                        type="checkbox"
-                                        checked={formData.actif}
-                                        onChange={(e) => setFormData({ ...formData, actif: e.target.checked })}
-                                        className="w-4 h-4"
-                                    />
-                                    <label className="text-sm font-medium">{t('plans.active')}</label>
-                                </div>
-                                <div className="flex gap-3 pt-2">
-                                    <motion.button
-                                        type="submit"
-                                        whileHover={{ scale: 1.02, y: -1 }}
-                                        whileTap={{ scale: 0.98 }}
-                                        className="flex-1 flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-500 via-purple-600 to-pink-600 hover:from-blue-600 hover:via-purple-700 hover:to-pink-700 text-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 font-semibold"
-                                    >
-                                        <Save className="w-4 h-4" />
-                                        {t('common.save')}
-                                    </motion.button>
-                                    <motion.button
-                                        type="button"
-                                        whileHover={{ scale: 1.02, y: -1 }}
-                                        whileTap={{ scale: 0.98 }}
-                                        onClick={() => setIsModalOpen(false)}
-                                        className="px-6 py-3 bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 rounded-xl font-semibold transition-colors"
-                                    >
-                                        {t('common.cancel')}
-                                    </motion.button>
-                                </div>
-                            </form>
-                        </motion.div>
-                    </motion.div>
-                )}
-            </AnimatePresence>
+                            <Save className="w-4 h-4 mr-2" />
+                            {t('common.save')}
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => setIsModalOpen(false)}
+                            className="btn-secondary"
+                        >
+                            {t('common.cancel')}
+                        </button>
+                    </div>
+                </form>
+            </Modal>
         </div>
     );
 });
@@ -341,4 +312,3 @@ const PlansManagement = memo(({ token }) => {
 PlansManagement.displayName = 'PlansManagement';
 
 export default PlansManagement;
-

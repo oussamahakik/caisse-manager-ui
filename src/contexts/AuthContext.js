@@ -3,6 +3,12 @@ import { toast } from 'sonner';
 import api from '../services/api';
 
 const AuthContext = createContext(null);
+const sanitizeSnackId = (value) => {
+  if (value === null || value === undefined || value === '' || value === 'null' || value === 'undefined') {
+    return null;
+  }
+  return value;
+};
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
@@ -17,7 +23,7 @@ export const AuthProvider = ({ children }) => {
     const storedToken = localStorage.getItem('token');
     return storedToken && storedToken.trim() !== '' ? storedToken : null;
   });
-  const [snackId, setSnackId] = useState(() => localStorage.getItem('snackId'));
+  const [snackId, setSnackId] = useState(() => sanitizeSnackId(localStorage.getItem('snackId')));
   const [role, setRole] = useState(() => localStorage.getItem('role'));
   const [isLoading, setIsLoading] = useState(true);
 
@@ -41,7 +47,7 @@ export const AuthProvider = ({ children }) => {
       }
 
       try {
-        const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8081';
+        const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080';
         const response = await fetch(`${API_BASE_URL}/api/auth/validate`, {
           method: 'GET',
           headers: {
@@ -70,11 +76,16 @@ export const AuthProvider = ({ children }) => {
     }
 
     setToken(receivedToken);
-    setSnackId(receivedSnackId);
+    const safeSnackId = sanitizeSnackId(receivedSnackId);
+    setSnackId(safeSnackId);
     setRole(receivedRole);
 
     localStorage.setItem('token', receivedToken);
-    localStorage.setItem('snackId', receivedSnackId);
+    if (safeSnackId) {
+      localStorage.setItem('snackId', safeSnackId);
+    } else {
+      localStorage.removeItem('snackId');
+    }
     localStorage.setItem('role', receivedRole);
 
     toast.success('Connexion réussie');
@@ -106,4 +117,3 @@ export const AuthProvider = ({ children }) => {
 };
 
 export default AuthContext;
-

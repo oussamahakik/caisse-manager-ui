@@ -17,7 +17,7 @@ const Card = ({
   padding = 'md',
   ...props
 }) => {
-  const baseStyles = 'glass-strong rounded-2xl shadow-card transition-all duration-300 border border-slate-200/60 dark:border-slate-700/70';
+  const baseStyles = 'section-card transition-all duration-300';
   
   const paddingStyles = {
     none: '',

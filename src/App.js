@@ -40,13 +40,20 @@ const GlobalSearch = lazy(() => import('./components/GlobalSearch'));
 const PromotionsManager = lazy(() => import('./components/PromotionsManager'));
 const PrintersManager = lazy(() => import('./components/PrintersManager'));
 
+const sanitizeSnackId = (value) => {
+    if (value === null || value === undefined || value === '' || value === 'null' || value === 'undefined') {
+        return null;
+    }
+    return value;
+};
+
 function App() {
     // --- ÉTATS D'AUTHENTIFICATION ---
     const [token, setToken] = useState(() => {
         const storedToken = localStorage.getItem('token');
         return storedToken && storedToken.trim() !== '' ? storedToken : null;
     });
-    const [snackId, setSnackIdState] = useState(() => localStorage.getItem('snackId'));
+    const [snackId, setSnackIdState] = useState(() => sanitizeSnackId(localStorage.getItem('snackId')));
     const [role, setRole] = useState(() => localStorage.getItem('role'));
     const [cart, setCart] = useState([]);
     const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -70,9 +77,12 @@ function App() {
 
     // Configuration API avec snackId
     useEffect(() => {
-        if (snackId) {
+        if (sanitizeSnackId(snackId)) {
             setSnackId(snackId);
             localStorage.setItem('snackId', snackId);
+        } else {
+            setSnackId(null);
+            localStorage.removeItem('snackId');
         }
     }, [snackId]);
 
@@ -93,7 +103,7 @@ function App() {
 
             try {
                 const apiModule = await import('./config/api');
-                const API_BASE_URL = apiModule.API_BASE_URL || 'http://localhost:8081';
+                const API_BASE_URL = apiModule.API_BASE_URL || 'http://localhost:8080';
                 const response = await fetch(`${API_BASE_URL}/api/auth/validate`, {
                     method: 'GET',
                     headers: {
@@ -164,11 +174,16 @@ function App() {
         }
         
         setToken(receivedToken);
-        setSnackIdState(receivedSnackId);
+        const safeSnackId = sanitizeSnackId(receivedSnackId);
+        setSnackIdState(safeSnackId);
         setRole(receivedRole);
         
         localStorage.setItem('token', receivedToken);
-        localStorage.setItem('snackId', receivedSnackId);
+        if (safeSnackId) {
+            localStorage.setItem('snackId', safeSnackId);
+        } else {
+            localStorage.removeItem('snackId');
+        }
         localStorage.setItem('role', receivedRole);
         
         if (receivedRole === 'SUPER_ADMIN' || receivedRole === 'ROLE_SUPER_ADMIN') {

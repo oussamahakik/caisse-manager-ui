@@ -1,8 +1,11 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, Edit2, Trash2, Search, Package, XCircle, AlertTriangle, Box, X } from 'lucide-react';
+import { Plus, Edit2, Trash2, Search, Package, XCircle, AlertTriangle, Box } from 'lucide-react';
 import { toast } from 'sonner';
 import api, { setSnackId } from '../services/api';
+import Modal from './common/Modal/Modal';
+import Input from './common/Input/Input';
+import Button from './common/Button/Button';
 
 const MenuAdmin = ({ products, token, snackId, onRefresh }) => {
     const [formData, setFormData] = useState({ nom: '', prix: '', categorie: 'Burgers', stock: null });
@@ -261,119 +264,81 @@ const MenuAdmin = ({ products, token, snackId, onRefresh }) => {
             </motion.div>
 
             {/* MODALE FORMULAIRE */}
-            <AnimatePresence>
-                {isModalOpen && (
-                    <>
-                        <motion.div
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            exit={{ opacity: 0 }}
-                            onClick={handleCloseModal}
-                            className="fixed inset-0 bg-black/60 dark:bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4"
-                        >
-                            <motion.div
-                                initial={{ opacity: 0, scale: 0.95, y: 20 }}
-                                animate={{ opacity: 1, scale: 1, y: 0 }}
-                                exit={{ opacity: 0, scale: 0.95, y: 20 }}
-                                transition={{ type: "spring", damping: 25, stiffness: 300 }}
-                                onClick={(e) => e.stopPropagation()}
-                                className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl p-6 w-full max-w-lg max-h-[90vh] overflow-y-auto"
+            <Modal
+                isOpen={isModalOpen}
+                onClose={handleCloseModal}
+                title={
+                    <span className="flex items-center gap-2">
+                        {isEditing ? <Edit2 className="w-5 h-5 text-indigo-600" /> : <Plus className="w-5 h-5 text-indigo-600" />}
+                        {isEditing ? 'Modifier le Produit' : 'Ajouter un Produit'}
+                    </span>
+                }
+                size="lg"
+            >
+                <form onSubmit={handleSubmit} className="space-y-4">
+                    <Input
+                        label="Nom"
+                        type="text"
+                        placeholder="Ex: Maxi Burger"
+                        required
+                        value={formData.nom}
+                        onChange={e => setFormData({...formData, nom: e.target.value})}
+                    />
+                    <div className="grid grid-cols-2 gap-4">
+                        <Input
+                            label="Prix (€)"
+                            type="number"
+                            step="0.10"
+                            placeholder="0.00"
+                            required
+                            value={formData.prix}
+                            onChange={e => setFormData({...formData, prix: e.target.value})}
+                        />
+                        <div>
+                            <label className="form-label">Catégorie</label>
+                            <select
+                                value={formData.categorie}
+                                onChange={e => setFormData({...formData, categorie: e.target.value})}
+                                className="form-select"
                             >
-                                <div className="flex items-center justify-between mb-6">
-                                    <div className="flex items-center gap-2">
-                                        {isEditing ? <Edit2 className="w-5 h-5 text-indigo-600 dark:text-indigo-400" /> : <Plus className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />}
-                                        <h3 className="text-xl font-bold text-slate-900 dark:text-slate-100">
-                                            {isEditing ? 'Modifier le Produit' : 'Ajouter un Produit'}
-                                        </h3>
-                                    </div>
-                                    <motion.button
-                                        whileHover={{ scale: 1.1, rotate: 90 }}
-                                        whileTap={{ scale: 0.9 }}
-                                        onClick={handleCloseModal}
-                                        className="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors"
-                                        aria-label="Fermer"
-                                    >
-                                        <X className="w-5 h-5 text-slate-500 dark:text-slate-400" />
-                                    </motion.button>
-                                </div>
-                                <form onSubmit={handleSubmit} className="space-y-4">
-                                    <div>
-                                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Nom</label>
-                                        <input
-                                            type="text"
-                                            placeholder="Ex: Maxi Burger"
-                                            required
-                                            value={formData.nom}
-                                            onChange={e => setFormData({...formData, nom: e.target.value})}
-                                            className="w-full px-4 py-2.5 border border-slate-300 dark:border-slate-600 rounded-xl focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 focus:border-transparent outline-none bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100"
-                                        />
-                                    </div>
-                                    <div className="grid grid-cols-2 gap-4">
-                                        <div>
-                                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Prix (€)</label>
-                                            <input
-                                                type="number"
-                                                step="0.10"
-                                                placeholder="0.00"
-                                                required
-                                                value={formData.prix}
-                                                onChange={e => setFormData({...formData, prix: e.target.value})}
-                                                className="w-full px-4 py-2.5 border border-slate-300 dark:border-slate-600 rounded-xl focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 focus:border-transparent outline-none bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100"
-                                            />
-                                        </div>
-                                        <div>
-                                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Catégorie</label>
-                                            <select
-                                                value={formData.categorie}
-                                                onChange={e => setFormData({...formData, categorie: e.target.value})}
-                                                className="w-full px-4 py-2.5 border border-slate-300 dark:border-slate-600 rounded-xl focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 focus:border-transparent outline-none bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100"
-                                            >
-                                                {categoriesList.map(c => <option key={c} value={c}>{c}</option>)}
-                                            </select>
-                                        </div>
-                                    </div>
-                                    <div>
-                                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2 flex items-center gap-2">
-                                            <Box className="w-4 h-4" />
-                                            Stock (optionnel)
-                                        </label>
-                                        <input
-                                            type="number"
-                                            min="0"
-                                            step="1"
-                                            placeholder="Laisser vide pour illimité"
-                                            value={formData.stock ?? ''}
-                                            onChange={e => setFormData({...formData, stock: e.target.value ? parseInt(e.target.value) : null})}
-                                            className="w-full px-4 py-2.5 border border-slate-300 dark:border-slate-600 rounded-xl focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 focus:border-transparent outline-none bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100"
-                                        />
-                                        <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Laisser vide si le stock n'est pas suivi</p>
-                                    </div>
-                                    <div className="flex gap-3 pt-4">
-                                        <motion.button
-                                            type="submit"
-                                            disabled={isLoading}
-                                            whileHover={{ scale: 1.02 }}
-                                            whileTap={{ scale: 0.98 }}
-                                            className="flex-1 bg-indigo-600 dark:bg-indigo-500 hover:bg-indigo-700 dark:hover:bg-indigo-600 text-white font-semibold py-2.5 px-4 rounded-xl disabled:opacity-50 transition-colors"
-                                        >
-                                            {isLoading ? 'Enregistrement...' : isEditing ? 'Sauvegarder' : 'Ajouter au Menu'}
-                                        </motion.button>
-                                        <motion.button
-                                            type="button"
-                                            whileHover={{ scale: 1.02 }}
-                                            whileTap={{ scale: 0.98 }}
-                                            onClick={handleCloseModal}
-                                            className="px-4 py-2.5 bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 font-semibold rounded-xl hover:bg-slate-300 dark:hover:bg-slate-600 transition-colors"
-                                        >
-                                            Annuler
-                                        </motion.button>
-                                    </div>
-                                </form>
-                            </motion.div>
-                        </motion.div>
-                    </>
-                )}
-            </AnimatePresence>
+                                {categoriesList.map(c => <option key={c} value={c}>{c}</option>)}
+                            </select>
+                        </div>
+                    </div>
+                    <Input
+                        label={
+                            <span className="flex items-center gap-2">
+                                <Box className="w-4 h-4" />
+                                Stock (optionnel)
+                            </span>
+                        }
+                        type="number"
+                        min="0"
+                        step="1"
+                        placeholder="Laisser vide pour illimité"
+                        value={formData.stock ?? ''}
+                        onChange={e => setFormData({...formData, stock: e.target.value ? parseInt(e.target.value) : null})}
+                    />
+                    <p className="text-xs text-slate-500 dark:text-slate-400 -mt-3">Laisser vide si le stock n'est pas suivi</p>
+                    <div className="modal-footer">
+                        <Button
+                            type="submit"
+                            disabled={isLoading}
+                            loading={isLoading}
+                            className="flex-1"
+                        >
+                            {isEditing ? 'Sauvegarder' : 'Ajouter au Menu'}
+                        </Button>
+                        <Button
+                            type="button"
+                            variant="secondary"
+                            onClick={handleCloseModal}
+                        >
+                            Annuler
+                        </Button>
+                    </div>
+                </form>
+            </Modal>
         </div>
     );
 };

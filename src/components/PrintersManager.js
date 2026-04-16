@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useCallback, memo } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, Edit2, Trash2, X, Save, Printer, TestTube } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { Plus, Edit2, Trash2, Save, Printer, TestTube } from 'lucide-react';
 import { toast } from 'sonner';
 import api from '../services/api';
 import { t } from '../i18n';
+import Modal from './common/Modal/Modal';
 
 const PrintersManager = memo(({ token, snackId }) => {
     const [printers, setPrinters] = useState([]);
@@ -24,6 +25,11 @@ const PrintersManager = memo(({ token, snackId }) => {
     });
 
     const fetchPrinters = useCallback(async () => {
+        if (!snackId) {
+            setPrinters([]);
+            setIsLoading(false);
+            return;
+        }
         setIsLoading(true);
         try {
             const response = await api.get('/api/imprimantes', {
@@ -31,7 +37,8 @@ const PrintersManager = memo(({ token, snackId }) => {
             });
             setPrinters(response.data || []);
         } catch (error) {
-            toast.error('Erreur lors du chargement des imprimantes');
+            const errorMessage = error.response?.data?.error || error.response?.data?.message || error.response?.data || 'Erreur lors du chargement des imprimantes';
+            toast.error(errorMessage);
         } finally {
             setIsLoading(false);
         }
@@ -86,7 +93,9 @@ const PrintersManager = memo(({ token, snackId }) => {
             };
 
             if (isEditMode) {
-                await api.put(`/api/imprimantes/${selectedPrinter.id}`, payload);
+                await api.put(`/api/imprimantes/${selectedPrinter.id}`, payload, {
+                    headers: { 'X-Snack-ID': snackId?.toString() }
+                });
                 toast.success('Imprimante modifiée avec succès');
             } else {
                 await api.post('/api/imprimantes', payload, {
@@ -97,27 +106,34 @@ const PrintersManager = memo(({ token, snackId }) => {
             setIsModalOpen(false);
             fetchPrinters();
         } catch (error) {
-            toast.error('Erreur lors de l\'enregistrement de l\'imprimante');
+            const errorMessage = error.response?.data?.error || error.response?.data?.message || error.response?.data || 'Erreur lors de l\'enregistrement de l\'imprimante';
+            toast.error(errorMessage);
         }
     };
 
     const handleDelete = async (id) => {
         if (!window.confirm('Êtes-vous sûr de vouloir supprimer cette imprimante ?')) return;
         try {
-            await api.delete(`/api/imprimantes/${id}`);
+            await api.delete(`/api/imprimantes/${id}`, {
+                headers: { 'X-Snack-ID': snackId?.toString() }
+            });
             toast.success('Imprimante supprimée avec succès');
             fetchPrinters();
         } catch (error) {
-            toast.error('Erreur lors de la suppression de l\'imprimante');
+            const errorMessage = error.response?.data?.error || error.response?.data?.message || error.response?.data || 'Erreur lors de la suppression de l\'imprimante';
+            toast.error(errorMessage);
         }
     };
 
     const handleTest = async (id) => {
         try {
-            await api.post(`/api/imprimantes/${id}/test`);
+            await api.post(`/api/imprimantes/${id}/test`, null, {
+                headers: { 'X-Snack-ID': snackId?.toString() }
+            });
             toast.success('Test d\'impression envoyé');
         } catch (error) {
-            toast.error('Erreur lors du test d\'impression');
+            const errorMessage = error.response?.data?.error || error.response?.data?.message || error.response?.data || 'Erreur lors du test d\'impression';
+            toast.error(errorMessage);
         }
     };
 
@@ -202,152 +218,124 @@ const PrintersManager = memo(({ token, snackId }) => {
                 ))}
             </div>
 
-            <AnimatePresence>
-                {isModalOpen && (
-                    <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
-                        onClick={() => setIsModalOpen(false)}
-                    >
-                        <motion.div
-                            initial={{ scale: 0.9, opacity: 0 }}
-                            animate={{ scale: 1, opacity: 1 }}
-                            exit={{ scale: 0.9, opacity: 0 }}
-                            onClick={(e) => e.stopPropagation()}
-                            className="glass-strong rounded-3xl p-6 max-w-2xl w-full border border-blue-200/50 dark:border-blue-500/30 max-h-[90vh] overflow-y-auto"
+            <Modal
+                isOpen={isModalOpen}
+                onClose={() => setIsModalOpen(false)}
+                title={isEditMode ? t('printers.edit') : t('printers.create')}
+                size="xl"
+            >
+                <form onSubmit={handleSubmit} className="space-y-4">
+                    <div className="grid grid-cols-2 gap-4">
+                        <div>
+                            <label className="form-label">{t('printers.name')}</label>
+                            <input
+                                type="text"
+                                value={formData.nom}
+                                onChange={(e) => setFormData({ ...formData, nom: e.target.value })}
+                                className="form-input"
+                                required
+                            />
+                        </div>
+                        <div>
+                            <label className="form-label">{t('printers.type')}</label>
+                            <select
+                                value={formData.type}
+                                onChange={(e) => setFormData({ ...formData, type: e.target.value })}
+                                className="form-select"
+                            >
+                                <option value="USB">USB</option>
+                                <option value="RESEAU">Réseau</option>
+                                <option value="BLUETOOTH">Bluetooth</option>
+                                <option value="FILE">Fichier</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div>
+                        <label className="form-label">{t('printers.path')}</label>
+                        <input
+                            type="text"
+                            value={formData.chemin}
+                            onChange={(e) => setFormData({ ...formData, chemin: e.target.value })}
+                            className="form-input"
+                            placeholder="Nom imprimante système, IP, ou chemin fichier"
+                            required
+                        />
+                    </div>
+                    <div>
+                        <label className="form-label">{t('printers.description')}</label>
+                        <textarea
+                            value={formData.description}
+                            onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                            className="form-textarea"
+                            rows="2"
+                        />
+                    </div>
+                    <div className="grid grid-cols-3 gap-4">
+                        <div>
+                            <label className="form-label">{t('printers.paperWidth')}</label>
+                            <input
+                                type="number"
+                                value={formData.largeurPapier}
+                                onChange={(e) => setFormData({ ...formData, largeurPapier: e.target.value })}
+                                className="form-input"
+                            />
+                        </div>
+                        <div>
+                            <label className="form-label">{t('printers.copies')}</label>
+                            <input
+                                type="number"
+                                min="1"
+                                value={formData.copies}
+                                onChange={(e) => setFormData({ ...formData, copies: e.target.value })}
+                                className="form-input"
+                            />
+                        </div>
+                        <div>
+                            <label className="form-label">{t('printers.ticketType')}</label>
+                            <select
+                                value={formData.typeTicket}
+                                onChange={(e) => setFormData({ ...formData, typeTicket: e.target.value })}
+                                className="form-select"
+                            >
+                                <option value="COMMANDE">Commande</option>
+                                <option value="RECU">Reçu</option>
+                                <option value="CUISINE">Cuisine</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <input
+                            type="checkbox"
+                            checked={formData.impressionAuto}
+                            onChange={(e) => setFormData({ ...formData, impressionAuto: e.target.checked })}
+                            className="w-4 h-4"
+                        />
+                        <label className="text-sm font-medium">{t('printers.autoPrint')}</label>
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <input
+                            type="checkbox"
+                            checked={formData.actif}
+                            onChange={(e) => setFormData({ ...formData, actif: e.target.checked })}
+                            className="w-4 h-4"
+                        />
+                        <label className="text-sm font-medium">{t('printers.active')}</label>
+                    </div>
+                    <div className="modal-footer">
+                        <button type="submit" className="btn-primary flex-1">
+                            <Save className="w-4 h-4 mr-2" />
+                            {t('common.save')}
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => setIsModalOpen(false)}
+                            className="btn-secondary"
                         >
-                            <div className="flex justify-between items-center mb-4">
-                                <h3 className="text-xl font-bold gradient-text">
-                                    {isEditMode ? t('printers.edit') : t('printers.create')}
-                                </h3>
-                                <button onClick={() => setIsModalOpen(false)}>
-                                    <X className="w-5 h-5" />
-                                </button>
-                            </div>
-                            <form onSubmit={handleSubmit} className="space-y-4">
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div>
-                                        <label className="block text-sm font-medium mb-2">{t('printers.name')}</label>
-                                        <input
-                                            type="text"
-                                            value={formData.nom}
-                                            onChange={(e) => setFormData({ ...formData, nom: e.target.value })}
-                                            className="w-full px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700"
-                                            required
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="block text-sm font-medium mb-2">{t('printers.type')}</label>
-                                        <select
-                                            value={formData.type}
-                                            onChange={(e) => setFormData({ ...formData, type: e.target.value })}
-                                            className="w-full px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700"
-                                        >
-                                            <option value="USB">USB</option>
-                                            <option value="RESEAU">Réseau</option>
-                                            <option value="BLUETOOTH">Bluetooth</option>
-                                            <option value="FILE">Fichier</option>
-                                        </select>
-                                    </div>
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium mb-2">{t('printers.path')}</label>
-                                    <input
-                                        type="text"
-                                        value={formData.chemin}
-                                        onChange={(e) => setFormData({ ...formData, chemin: e.target.value })}
-                                        className="w-full px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700"
-                                        placeholder="Nom imprimante système, IP, ou chemin fichier"
-                                        required
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium mb-2">{t('printers.description')}</label>
-                                    <textarea
-                                        value={formData.description}
-                                        onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                                        className="w-full px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700"
-                                        rows="2"
-                                    />
-                                </div>
-                                <div className="grid grid-cols-3 gap-4">
-                                    <div>
-                                        <label className="block text-sm font-medium mb-2">{t('printers.paperWidth')}</label>
-                                        <input
-                                            type="number"
-                                            value={formData.largeurPapier}
-                                            onChange={(e) => setFormData({ ...formData, largeurPapier: e.target.value })}
-                                            className="w-full px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700"
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="block text-sm font-medium mb-2">{t('printers.copies')}</label>
-                                        <input
-                                            type="number"
-                                            min="1"
-                                            value={formData.copies}
-                                            onChange={(e) => setFormData({ ...formData, copies: e.target.value })}
-                                            className="w-full px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700"
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="block text-sm font-medium mb-2">{t('printers.ticketType')}</label>
-                                        <select
-                                            value={formData.typeTicket}
-                                            onChange={(e) => setFormData({ ...formData, typeTicket: e.target.value })}
-                                            className="w-full px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700"
-                                        >
-                                            <option value="COMMANDE">Commande</option>
-                                            <option value="RECU">Reçu</option>
-                                            <option value="CUISINE">Cuisine</option>
-                                        </select>
-                                    </div>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                    <input
-                                        type="checkbox"
-                                        checked={formData.impressionAuto}
-                                        onChange={(e) => setFormData({ ...formData, impressionAuto: e.target.checked })}
-                                        className="w-4 h-4"
-                                    />
-                                    <label className="text-sm font-medium">{t('printers.autoPrint')}</label>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                    <input
-                                        type="checkbox"
-                                        checked={formData.actif}
-                                        onChange={(e) => setFormData({ ...formData, actif: e.target.checked })}
-                                        className="w-4 h-4"
-                                    />
-                                    <label className="text-sm font-medium">{t('printers.active')}</label>
-                                </div>
-                                <div className="flex gap-2">
-                                    <motion.button
-                                        type="submit"
-                                        whileHover={{ scale: 1.05 }}
-                                        whileTap={{ scale: 0.95 }}
-                                        className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-lg"
-                                    >
-                                        <Save className="w-4 h-4" />
-                                        {t('common.save')}
-                                    </motion.button>
-                                    <motion.button
-                                        type="button"
-                                        whileHover={{ scale: 1.05 }}
-                                        whileTap={{ scale: 0.95 }}
-                                        onClick={() => setIsModalOpen(false)}
-                                        className="px-4 py-2 bg-slate-200 dark:bg-slate-700 rounded-lg"
-                                    >
-                                        {t('common.cancel')}
-                                    </motion.button>
-                                </div>
-                            </form>
-                        </motion.div>
-                    </motion.div>
-                )}
-            </AnimatePresence>
+                            {t('common.cancel')}
+                        </button>
+                    </div>
+                </form>
+            </Modal>
         </div>
     );
 });
@@ -355,4 +343,3 @@ const PrintersManager = memo(({ token, snackId }) => {
 PrintersManager.displayName = 'PrintersManager';
 
 export default PrintersManager;
-

@@ -64,7 +64,7 @@ const Modal = ({
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
-            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50"
+            className="modal-backdrop"
             onClick={closeOnOverlayClick ? onClose : undefined}
             aria-hidden="true"
           />
@@ -83,7 +83,7 @@ const Modal = ({
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
               transition={{ duration: 0.2, ease: 'easeOut' }}
               className={clsx(
-                'glass-strong rounded-2xl shadow-2xl w-full pointer-events-auto max-h-[90vh] overflow-hidden flex flex-col',
+                'modal-panel pointer-events-auto flex flex-col',
                 sizeStyles[size],
                 className
               )}
@@ -91,7 +91,7 @@ const Modal = ({
             >
               {/* Header */}
               {title && (
-                <div className="flex items-center justify-between p-6 border-b border-slate-200 dark:border-slate-700">
+                <div className="modal-header">
                   <h2
                     id="modal-title"
                     className="text-h2 font-bold text-slate-900 dark:text-white"
@@ -100,7 +100,7 @@ const Modal = ({
                   </h2>
                   <button
                     onClick={onClose}
-                    className="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors"
+                    className="btn-ghost p-2"
                     aria-label="Fermer"
                   >
                     <X className="w-5 h-5 text-slate-500 dark:text-slate-400" />
@@ -109,7 +109,7 @@ const Modal = ({
               )}
 
               {/* Content */}
-              <div className="flex-1 overflow-y-auto p-6">
+              <div className="modal-body">
                 {children}
               </div>
             </motion.div>

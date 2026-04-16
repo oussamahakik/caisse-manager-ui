@@ -18,7 +18,7 @@ const Input = ({
   id,
   ...props
 }) => {
-  const baseStyles = 'block w-full rounded-lg border transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-0 disabled:opacity-50 disabled:cursor-not-allowed';
+  const baseStyles = 'form-input block w-full rounded-xl border transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-0 disabled:opacity-50 disabled:cursor-not-allowed';
   
   const sizeStyles = {
     sm: 'px-3 py-1.5 text-sm',
@@ -30,7 +30,17 @@ const Input = ({
     ? 'border-error-500 focus:border-error-500 focus:ring-error-500 bg-error-50 dark:bg-error-900/20'
     : 'border-slate-300 dark:border-slate-600 focus:border-primary-500 focus:ring-primary-500 bg-white dark:bg-slate-700 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500';
 
-  const inputId = id || `input-${label?.toLowerCase().replace(/\s+/g, '-')}`;
+  // Generate input ID - handle both string and JSX labels
+  const generateInputId = () => {
+    if (id) return id;
+    if (label && typeof label === 'string') {
+      return `input-${label.toLowerCase().replace(/\s+/g, '-')}`;
+    }
+    // For JSX labels or missing labels, generate a random ID
+    return `input-${Math.random().toString(36).substr(2, 9)}`;
+  };
+
+  const inputId = generateInputId();
 
   return (
     <div className="w-full">

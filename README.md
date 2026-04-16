@@ -48,7 +48,7 @@ npm install
 cp .env.example .env.development
 
 # Modifier les variables d'environnement si nécessaire
-# REACT_APP_API_URL=http://localhost:8081
+# REACT_APP_API_URL=http://localhost:8080
 ```
 
 ### Développement
@@ -153,7 +153,7 @@ L'application est une Progressive Web App (PWA) :
 
 | Variable | Description | Défaut |
 |----------|-------------|--------|
-| `REACT_APP_API_URL` | URL de l'API backend | `http://localhost:8081` |
+| `REACT_APP_API_URL` | URL de l'API backend | `http://localhost:8080` |
 | `REACT_APP_APP_NAME` | Nom de l'application | `CaisseManager` |
 | `REACT_APP_VERSION` | Version de l'application | `1.0.0` |
 | `REACT_APP_ENV` | Environnement | `development` |

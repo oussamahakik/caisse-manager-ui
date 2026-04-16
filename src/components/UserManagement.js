@@ -1,12 +1,13 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
-    Users, Edit, Trash2, Key, X, Loader2, 
+    Users, Edit, Trash2, Key, Loader2, 
     UserPlus, Lock, Unlock, Search 
 } from 'lucide-react';
 import { toast } from 'sonner';
 import api, { setSnackId } from '../services/api';
 import { TableRowSkeleton } from './LoadingSkeleton';
+import Modal from './common/Modal/Modal';
 
 const UserManagement = ({ token, snackId }) => {
     const [users, setUsers] = useState([]);
@@ -84,7 +85,8 @@ const UserManagement = ({ token, snackId }) => {
             resetForm();
             fetchUsers();
         } catch (error) {
-            toast.error('Erreur lors de l\'enregistrement de l\'utilisateur.');
+            const errorMessage = error.response?.data?.error || error.response?.data?.message || error.response?.data || 'Erreur lors de l\'enregistrement de l\'utilisateur.';
+            toast.error(errorMessage);
         } finally {
             setIsSubmitting(false);
         }
@@ -110,7 +112,8 @@ const UserManagement = ({ token, snackId }) => {
             toast.success('Utilisateur supprimé avec succès !');
             fetchUsers();
         } catch (error) {
-            toast.error('Erreur lors de la suppression de l\'utilisateur.');
+            const errorMessage = error.response?.data?.error || error.response?.data?.message || error.response?.data || 'Erreur lors de la suppression de l\'utilisateur.';
+            toast.error(errorMessage);
         }
     }, [snackId, fetchUsers]);
 
@@ -127,7 +130,8 @@ const UserManagement = ({ token, snackId }) => {
                 duration: 10000
             });
         } catch (error) {
-            toast.error('Erreur lors de la réinitialisation du mot de passe.');
+            const errorMessage = error.response?.data?.error || error.response?.data?.message || error.response?.data || 'Erreur lors de la réinitialisation du mot de passe.';
+            toast.error(errorMessage);
         } finally {
             setIsSubmitting(false);
         }
@@ -141,7 +145,8 @@ const UserManagement = ({ token, snackId }) => {
             toast.success('Statut de l\'utilisateur mis à jour.');
             fetchUsers();
         } catch (error) {
-            toast.error('Erreur lors de la modification du statut.');
+            const errorMessage = error.response?.data?.error || error.response?.data?.message || error.response?.data || 'Erreur lors de la modification du statut.';
+            toast.error(errorMessage);
         }
     }, [snackId, fetchUsers]);
 
@@ -324,117 +329,90 @@ const UserManagement = ({ token, snackId }) => {
                 )}
             </div>
 
-            {/* Modal de création/édition */}
-            <AnimatePresence>
-                {isModalOpen && (
-                    <motion.div
-                        className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[1000]"
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                    >
-                        <motion.div
-                            className="bg-white rounded-xl p-8 shadow-2xl w-full max-w-md"
-                            initial={{ scale: 0.9, opacity: 0 }}
-                            animate={{ scale: 1, opacity: 1 }}
-                            exit={{ scale: 0.9, opacity: 0 }}
+            <Modal
+                isOpen={isModalOpen}
+                onClose={() => {
+                    setIsModalOpen(false);
+                    resetForm();
+                }}
+                title={
+                    <span className="flex items-center gap-2">
+                        {isEditMode ? <Edit className="w-6 h-6 text-blue-600" /> : <UserPlus className="w-6 h-6 text-emerald-600" />}
+                        {isEditMode ? 'Modifier l\'Utilisateur' : 'Nouvel Utilisateur'}
+                    </span>
+                }
+                size="md"
+            >
+                <form onSubmit={handleSubmit} className="space-y-5">
+                    <div>
+                        <label htmlFor="username" className="form-label">
+                            Nom d'utilisateur
+                        </label>
+                        <input
+                            type="text"
+                            id="username"
+                            required
+                            value={formData.username}
+                            onChange={(e) => setFormData({ ...formData, username: e.target.value })}
+                            className="form-input"
+                            placeholder="Ex: caissier01"
+                        />
+                    </div>
+
+                    <div>
+                        <label htmlFor="password" className="form-label">
+                            Mot de passe {isEditMode && '(laisser vide pour ne pas changer)'}
+                        </label>
+                        <input
+                            type="password"
+                            id="password"
+                            required={!isEditMode}
+                            value={formData.password}
+                            onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                            className="form-input"
+                            placeholder="******"
+                        />
+                    </div>
+
+                    <div>
+                        <label htmlFor="role" className="form-label">
+                            Rôle
+                        </label>
+                        <select
+                            id="role"
+                            value={formData.role}
+                            onChange={(e) => setFormData({ ...formData, role: e.target.value })}
+                            className="form-select"
                         >
-                            <div className="flex justify-between items-center mb-6">
-                                <h3 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
-                                    {isEditMode ? <Edit className="w-6 h-6 text-blue-600" /> : <UserPlus className="w-6 h-6 text-emerald-600" />}
-                                    {isEditMode ? 'Modifier l\'Utilisateur' : 'Nouvel Utilisateur'}
-                                </h3>
-                                <motion.button
-                                    onClick={() => {
-                                        setIsModalOpen(false);
-                                        resetForm();
-                                    }}
-                                    className="p-2 rounded-full hover:bg-slate-100 transition-colors"
-                                    whileHover={{ scale: 1.1 }}
-                                    whileTap={{ scale: 0.9 }}
-                                >
-                                    <X className="w-6 h-6 text-slate-600" />
-                                </motion.button>
-                            </div>
+                            <option value="ROLE_CAISSIER">Caissier</option>
+                            <option value="ROLE_MANAGER">Manager</option>
+                        </select>
+                    </div>
 
-                            <form onSubmit={handleSubmit} className="space-y-5">
-                                <div>
-                                    <label htmlFor="username" className="block text-sm font-medium text-slate-700 mb-1">
-                                        Nom d'utilisateur
-                                    </label>
-                                    <input
-                                        type="text"
-                                        id="username"
-                                        required
-                                        value={formData.username}
-                                        onChange={(e) => setFormData({ ...formData, username: e.target.value })}
-                                        className="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
-                                        placeholder="Ex: caissier01"
-                                    />
-                                </div>
-
-                                <div>
-                                    <label htmlFor="password" className="block text-sm font-medium text-slate-700 mb-1">
-                                        Mot de passe {isEditMode && '(laisser vide pour ne pas changer)'}
-                                    </label>
-                                    <input
-                                        type="password"
-                                        id="password"
-                                        required={!isEditMode}
-                                        value={formData.password}
-                                        onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                                        className="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
-                                        placeholder="******"
-                                    />
-                                </div>
-
-                                <div>
-                                    <label htmlFor="role" className="block text-sm font-medium text-slate-700 mb-1">
-                                        Rôle
-                                    </label>
-                                    <select
-                                        id="role"
-                                        value={formData.role}
-                                        onChange={(e) => setFormData({ ...formData, role: e.target.value })}
-                                        className="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white"
-                                    >
-                                        <option value="ROLE_CAISSIER">Caissier</option>
-                                        <option value="ROLE_MANAGER">Manager</option>
-                                    </select>
-                                </div>
-
-                                <div className="flex justify-end gap-3 mt-6">
-                                    <motion.button
-                                        type="button"
-                                        onClick={() => {
-                                            setIsModalOpen(false);
-                                            resetForm();
-                                        }}
-                                        className="px-6 py-3 bg-slate-200 text-slate-800 rounded-lg font-semibold hover:bg-slate-300 transition-colors"
-                                        whileHover={{ scale: 1.02 }}
-                                        whileTap={{ scale: 0.98 }}
-                                    >
-                                        Annuler
-                                    </motion.button>
-                                    <motion.button
-                                        type="submit"
-                                        disabled={isSubmitting}
-                                        className="px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                                        whileHover={{ scale: 1.02 }}
-                                        whileTap={{ scale: 0.98 }}
-                                    >
-                                        {isSubmitting ? <Loader2 className="w-5 h-5 animate-spin" /> : (isEditMode ? <Edit className="w-5 h-5" /> : <UserPlus className="w-5 h-5" />)}
-                                        {isSubmitting ? 'Enregistrement...' : (isEditMode ? 'Modifier' : 'Créer')}
-                                    </motion.button>
-                                </div>
-                            </form>
-                        </motion.div>
-                    </motion.div>
-                )}
-            </AnimatePresence>
+                    <div className="modal-footer">
+                        <button
+                            type="button"
+                            onClick={() => {
+                                setIsModalOpen(false);
+                                resetForm();
+                            }}
+                            className="btn-secondary"
+                        >
+                            Annuler
+                        </button>
+                        <button
+                            type="submit"
+                            disabled={isSubmitting}
+                            className="btn-primary flex items-center justify-center gap-2"
+                        >
+                            {isSubmitting ? <Loader2 className="w-5 h-5 animate-spin" /> : (isEditMode ? <Edit className="w-5 h-5" /> : <UserPlus className="w-5 h-5" />)}
+                            {isSubmitting ? 'Enregistrement...' : (isEditMode ? 'Modifier' : 'Créer')}
+                        </button>
+                    </div>
+                </form>
+            </Modal>
         </div>
     );
 };
 
 export default UserManagement;
-

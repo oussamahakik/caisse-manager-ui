@@ -48,13 +48,13 @@ const Login = ({ onLogin }) => {
     };
 
     return (
-        <div className="min-h-screen bg-gray-50 dark:bg-slate-900 flex items-center justify-center p-4">
+        <div className="app-shell flex items-center justify-center p-4">
             {/* Split Screen Design - Enterprise SaaS */}
             <motion.div
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ duration: 0.3, ease: "easeOut" }}
-                className="w-full max-w-6xl bg-white dark:bg-slate-800 rounded-2xl shadow-xl overflow-hidden flex flex-col lg:flex-row"
+                className="w-full max-w-6xl bg-surface dark:bg-slate-800 rounded-[2rem] shadow-card overflow-hidden flex flex-col lg:flex-row"
             >
                 {/* Left Side - Branding (Desktop only) */}
                 <motion.div
@@ -142,7 +142,7 @@ const Login = ({ onLogin }) => {
                                     placeholder="Ex: admin"
                                     disabled={isLoading}
                                     required
-                                    className="block w-full pl-10 pr-3 py-2.5 border border-slate-300 dark:border-slate-600 rounded-xl bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 focus:border-transparent transition-all"
+                                    className="form-input pl-10 pr-3 text-base"
                                 />
                             </div>
                             {errors.username && (
@@ -172,7 +172,7 @@ const Login = ({ onLogin }) => {
                                     placeholder="Ex: 1234"
                                     disabled={isLoading}
                                     required
-                                    className="block w-full pl-10 pr-3 py-2.5 border border-slate-300 dark:border-slate-600 rounded-xl bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 focus:border-transparent transition-all"
+                                    className="form-input pl-10 pr-3 text-base"
                                 />
                             </div>
                             {errors.password && (
@@ -206,7 +206,7 @@ const Login = ({ onLogin }) => {
                         <button
                             type="submit"
                             disabled={isLoading}
-                            className="w-full flex items-center justify-center gap-2 bg-indigo-600 dark:bg-indigo-500 hover:bg-indigo-700 dark:hover:bg-indigo-600 text-white font-semibold py-3 px-4 rounded-xl shadow-lg hover:shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="btn-primary w-full gap-2 py-3"
                         >
                             {isLoading ? (
                                 <>

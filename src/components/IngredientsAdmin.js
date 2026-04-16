@@ -3,6 +3,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Trash2, Salad, CheckCircle2, XCircle, Coins } from 'lucide-react';
 import { toast } from 'sonner';
 import api, { setSnackId } from '../services/api';
+import Input from './common/Input/Input';
+import Button from './common/Button/Button';
 
 const IngredientsAdmin = memo(({ ingredients, token, snackId, onRefresh }) => {
     const [formData, setFormData] = useState({ nom: '', type: 'VIANDE', prixSupplement: 0.0 });
@@ -98,21 +100,18 @@ const IngredientsAdmin = memo(({ ingredients, token, snackId, onRefresh }) => {
                     <h3 className="text-2xl font-extrabold gradient-text tracking-tight">Nouvel Ingrédient</h3>
                 </div>
                 <form onSubmit={handleSubmit} className="space-y-4">
-                    <div>
-                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Nom</label>
-                        <input
-                            type="text"
-                            placeholder="Ex: Cheddar"
-                            required
-                            value={formData.nom}
-                            onChange={e => setFormData({...formData, nom: e.target.value})}
-                            className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none bg-white dark:bg-slate-700 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500"
-                        />
-                    </div>
+                    <Input
+                        label="Nom"
+                        type="text"
+                        placeholder="Ex: Cheddar"
+                        required
+                        value={formData.nom}
+                        onChange={e => setFormData({...formData, nom: e.target.value})}
+                    />
                     
                     <div className="grid grid-cols-2 gap-4">
                         <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-1">Type</label>
+                            <label className="form-label">Type</label>
                             <select
                                 value={formData.type}
                                 onChange={e => {
@@ -123,53 +122,40 @@ const IngredientsAdmin = memo(({ ingredients, token, snackId, onRefresh }) => {
                                         prixSupplement: newType === 'SUPPLEMENT' ? formData.prixSupplement : 0.0
                                     });
                                 }}
-                                className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                                className="form-select"
                             >
                                 {typesList.map(t => <option key={t} value={t}>{t}</option>)}
                             </select>
                         </div>
 
-                        <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-1">
-                                Prix Vente (€)
-                                {formData.type === 'SUPPLEMENT' && (
-                                    <span className="text-xs text-slate-500 ml-1">(requis)</span>
-                                )}
-                            </label>
-                            <input
-                                type="number"
-                                step="0.10"
-                                min="0"
-                                placeholder="0.00"
-                                value={formData.prixSupplement}
-                                onChange={e => setFormData({...formData, prixSupplement: parseFloat(e.target.value) || 0})}
-                                disabled={formData.type !== 'SUPPLEMENT'}
-                                className={`w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none ${
-                                    formData.type !== 'SUPPLEMENT' ? 'bg-slate-100 cursor-not-allowed' : ''
-                                }`}
-                            />
-                        </div>
+                        <Input
+                            label={
+                                <>
+                                    Prix Vente (€)
+                                    {formData.type === 'SUPPLEMENT' && (
+                                        <span className="text-xs text-slate-500 ml-1">(requis)</span>
+                                    )}
+                                </>
+                            }
+                            type="number"
+                            step="0.10"
+                            min="0"
+                            placeholder="0.00"
+                            value={formData.prixSupplement}
+                            onChange={e => setFormData({...formData, prixSupplement: parseFloat(e.target.value) || 0})}
+                            disabled={formData.type !== 'SUPPLEMENT'}
+                        />
                     </div>
 
-                    <motion.button
+                    <Button
                         type="submit"
                         disabled={isLoading}
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
-                        className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold py-3 px-4 rounded-lg disabled:opacity-50 transition-all shadow-md hover:shadow-lg"
+                        loading={isLoading}
+                        className="w-full"
                     >
-                        {isLoading ? (
-                            <span className="flex items-center justify-center gap-2">
-                                <span className="animate-spin">⏳</span>
-                                <span>Ajout en cours...</span>
-                            </span>
-                        ) : (
-                            <span className="flex items-center justify-center gap-2">
-                                <Salad className="w-4 h-4" />
-                                <span>Ajouter l'ingrédient</span>
-                            </span>
-                        )}
-                    </motion.button>
+                        <Salad className="w-4 h-4 mr-2" />
+                        Ajouter l'ingrédient
+                    </Button>
                 </form>
             </motion.div>
 

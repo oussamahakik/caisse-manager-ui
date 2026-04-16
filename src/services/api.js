@@ -2,6 +2,9 @@ import axios from 'axios';
 import { API_BASE_URL } from '../config/api';
 import { toast } from 'sonner';
 
+const isValidSnackId = (value) =>
+  value !== null && value !== undefined && value !== '' && value !== 'null' && value !== 'undefined';
+
 // Créer une instance Axios avec configuration de base
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -21,7 +24,7 @@ api.interceptors.request.use(
     
     // Ajouter le header X-Snack-ID si disponible et non déjà défini
     const snackId = localStorage.getItem('snackId');
-    if (snackId && !config.headers['X-Snack-ID']) {
+    if (isValidSnackId(snackId) && !config.headers['X-Snack-ID']) {
       config.headers['X-Snack-ID'] = snackId.toString();
     }
     
@@ -104,7 +107,7 @@ api.interceptors.response.use(
 
 // Fonction helper pour ajouter le header X-Snack-ID
 export const setSnackId = (snackId) => {
-  if (snackId) {
+  if (isValidSnackId(snackId)) {
     api.defaults.headers.common['X-Snack-ID'] = snackId.toString();
   } else {
     delete api.defaults.headers.common['X-Snack-ID'];
@@ -112,4 +115,3 @@ export const setSnackId = (snackId) => {
 };
 
 export default api;
-

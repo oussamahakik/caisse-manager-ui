@@ -15,6 +15,7 @@ const SuperAdminDashboard = memo(({ token, onLogout }) => {
     const [snacks, setSnacks] = useState([]);
     const [plans, setPlans] = useState([]);
     const [users, setUsers] = useState([]);
+    const [totalUsersCount, setTotalUsersCount] = useState(0);
     const [isLoading, setIsLoading] = useState(false);
     const [isLoadingData, setIsLoadingData] = useState(true);
     const [isLoadingUsers, setIsLoadingUsers] = useState(false);
@@ -73,11 +74,9 @@ const SuperAdminDashboard = memo(({ token, onLogout }) => {
     useEffect(() => {
         fetchSnacks();
         fetchPlans();
+        fetchUsersCount();
         if (activeTab === 'users') {
             fetchAllUsers();
-        }
-        if (activeTab === 'analytics' || activeTab === 'overview') {
-            fetchAnalytics();
         }
         if (activeTab === 'finance') {
             fetchFinanceData();
@@ -87,6 +86,13 @@ const SuperAdminDashboard = memo(({ token, onLogout }) => {
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [activeTab]);
+
+    useEffect(() => {
+        if (activeTab === 'analytics' || activeTab === 'overview') {
+            fetchAnalytics();
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [snacks, totalUsersCount, activeTab]);
 
     const fetchPlans = async () => {
         try {
@@ -113,11 +119,25 @@ const SuperAdminDashboard = memo(({ token, onLogout }) => {
         }
     };
 
+    const fetchUsersCount = async () => {
+        try {
+            const response = await api.get('/api/super-admin/users/count');
+            const count = Number(response?.data?.count || 0);
+            setTotalUsersCount(Number.isNaN(count) ? 0 : count);
+        } catch (error) {
+            if (process.env.NODE_ENV === 'development') {
+                console.error("Erreur chargement compteur utilisateurs", error);
+            }
+        }
+    };
+
     const fetchAllUsers = async () => {
         setIsLoadingUsers(true);
         try {
             const response = await api.get('/api/super-admin/users');
-            setUsers(response.data || []);
+            const usersData = response.data || [];
+            setUsers(usersData);
+            setTotalUsersCount(usersData.length);
         } catch (error) {
             if (process.env.NODE_ENV === 'development') {
                 console.error("Erreur chargement utilisateurs", error);
@@ -140,6 +160,7 @@ const SuperAdminDashboard = memo(({ token, onLogout }) => {
             await api.delete(`/api/super-admin/users/${userId}`);
             toast.success('Utilisateur supprimé avec succès.');
             fetchAllUsers();
+            fetchUsersCount();
         } catch (error) {
             toast.error('Erreur lors de la suppression de l\'utilisateur.');
         }
@@ -170,7 +191,7 @@ const SuperAdminDashboard = memo(({ token, onLogout }) => {
                 totalRevenue,
                 activeSubscriptions,
                 newRestaurantsThisMonth,
-                totalUsers: users.length,
+                totalUsers: totalUsersCount,
                 totalRestaurants: snacks.length,
                 growthRate: snacks.length > 0 ? ((newRestaurantsThisMonth / snacks.length) * 100).toFixed(1) : '0'
             });
@@ -398,7 +419,11 @@ const SuperAdminDashboard = memo(({ token, onLogout }) => {
         setIsLoading(true);
 
         try {
-            await api.put(`/api/super-admin/snacks/${selectedSnackForAbonnement.id}/abonnement`, abonnementFormData);
+            const payload = {
+                planId: abonnementFormData.planId ? Number(abonnementFormData.planId) : null,
+                dateFinAbonnement: abonnementFormData.dateFinAbonnement || null
+            };
+            await api.put(`/api/super-admin/snacks/${selectedSnackForAbonnement.id}/abonnement`, payload);
             toast.success('Abonnement mis à jour avec succès !');
             setIsAbonnementModalOpen(false);
             setSelectedSnackForAbonnement(null);
@@ -441,7 +466,7 @@ const SuperAdminDashboard = memo(({ token, onLogout }) => {
                     {[
                         { id: 'overview', label: 'Vue d\'ensemble', icon: BarChart3 },
                         { id: 'restaurants', label: 'Restaurants', icon: Building2 },
-                        { id: 'users', label: 'Utilisateurs', icon: Users, badge: users.length },
+                        { id: 'users', label: 'Utilisateurs', icon: Users, badge: totalUsersCount },
                         { id: 'plans', label: 'Plans', icon: Package },
                         { id: 'analytics', label: 'Analytics', icon: TrendingUp },
                         { id: 'finance', label: 'Finance', icon: DollarSign },
@@ -455,9 +480,6 @@ const SuperAdminDashboard = memo(({ token, onLogout }) => {
                                 setActiveTab(tab.id);
                                 if (tab.id === 'users' && users.length === 0) {
                                     fetchAllUsers();
-                                }
-                                if (tab.id === 'analytics' || tab.id === 'overview') {
-                                    fetchAnalytics();
                                 }
                                 if (tab.id === 'finance') {
                                     fetchFinanceData();
@@ -754,7 +776,7 @@ const SuperAdminDashboard = memo(({ token, onLogout }) => {
                     <div className="p-6 border-b-2 border-slate-200/50 dark:border-slate-700/50 flex items-center justify-between bg-gradient-to-r from-blue-50/50 to-purple-50/50 dark:from-slate-800/50 dark:to-slate-700/50">
                         <h2 className="text-2xl font-extrabold gradient-text tracking-tight flex items-center gap-3">
                             <Users className="w-6 h-6" />
-                            Liste des Utilisateurs ({users.length})
+                            Liste des Utilisateurs ({totalUsersCount})
                         </h2>
                         <div className="relative">
                             <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500" />

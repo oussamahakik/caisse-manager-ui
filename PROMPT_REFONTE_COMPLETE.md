@@ -127,7 +127,7 @@ Créer les fichiers suivants :
 
 **`.env.development`**
 ```env
-REACT_APP_API_URL=http://localhost:8081
+REACT_APP_API_URL=http://localhost:8080
 REACT_APP_APP_NAME=CaisseManager
 REACT_APP_VERSION=1.0.0
 REACT_APP_ENV=development
@@ -154,7 +154,7 @@ REACT_APP_ENABLE_ANALYTICS=false
 
 #### Mise à jour de `src/config/api.js`
 ```javascript
-export const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8081';
+export const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080';
 export const APP_NAME = process.env.REACT_APP_APP_NAME || 'CaisseManager';
 export const APP_VERSION = process.env.REACT_APP_VERSION || '1.0.0';
 export const APP_ENV = process.env.REACT_APP_ENV || 'development';
@@ -282,14 +282,14 @@ services:
       context: .
       dockerfile: Dockerfile
       args:
-        REACT_APP_API_URL: ${REACT_APP_API_URL:-http://localhost:8081}
+        REACT_APP_API_URL: ${REACT_APP_API_URL:-http://localhost:8080}
         REACT_APP_APP_NAME: ${REACT_APP_APP_NAME:-CaisseManager}
         REACT_APP_VERSION: ${REACT_APP_VERSION:-1.0.0}
         REACT_APP_ENV: ${REACT_APP_ENV:-production}
     ports:
       - "3000:80"
     environment:
-      - REACT_APP_API_URL=${REACT_APP_API_URL:-http://localhost:8081}
+      - REACT_APP_API_URL=${REACT_APP_API_URL:-http://localhost:8080}
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/health"]

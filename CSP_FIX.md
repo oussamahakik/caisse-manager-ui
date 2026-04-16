@@ -4,7 +4,7 @@
 
 **Erreur initiale :**
 ```
-Connecting to 'http://localhost:8081/api/auth/login' violates the following Content Security Policy directive: "connect-src 'self' https://api.caisse-manager.com".
+Connecting to 'http://localhost:8080/api/auth/login' violates the following Content Security Policy directive: "connect-src 'self' https://api.caisse-manager.com".
 ```
 
 ## 🔧 Corrections Appliquées
@@ -13,19 +13,19 @@ Connecting to 'http://localhost:8081/api/auth/login' violates the following Cont
 
 **Avant :**
 ```html
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com http://localhost:8081; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://api.caisse-manager.com;" />
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com http://localhost:8080; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://api.caisse-manager.com;" />
 ```
 
 **Après :**
 ```html
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://api.caisse-manager.com http://localhost:8081 ws://localhost:8081 http://localhost:* ws://localhost:*;" />
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://api.caisse-manager.com http://localhost:8080 ws://localhost:8080 http://localhost:* ws://localhost:*;" />
 ```
 
 **Changements :**
-- ✅ Ajout de `http://localhost:8081` dans `connect-src`
-- ✅ Ajout de `ws://localhost:8081` pour les WebSockets
+- ✅ Ajout de `http://localhost:8080` dans `connect-src`
+- ✅ Ajout de `ws://localhost:8080` pour les WebSockets
 - ✅ Ajout de `http://localhost:*` et `ws://localhost:*` pour tous les ports locaux (développement)
-- ✅ Retrait de `http://localhost:8081` de `script-src` (non nécessaire)
+- ✅ Retrait de `http://localhost:8080` de `script-src` (non nécessaire)
 
 ### 2. Correction des Warnings React
 
@@ -43,7 +43,7 @@ Connecting to 'http://localhost:8081/api/auth/login' violates the following Cont
 | `style-src` | `'self' 'unsafe-inline' https://fonts.googleapis.com` | Styles autorisés |
 | `font-src` | `'self' https://fonts.gstatic.com` | Polices autorisées |
 | `img-src` | `'self' data: https:` | Images autorisées |
-| `connect-src` | `'self' https://api.caisse-manager.com http://localhost:8081 ws://localhost:8081 http://localhost:* ws://localhost:*` | **Connexions autorisées** |
+| `connect-src` | `'self' https://api.caisse-manager.com http://localhost:8080 ws://localhost:8080 http://localhost:* ws://localhost:*` | **Connexions autorisées** |
 
 ## 🧪 Test de la Correction
 
@@ -63,7 +63,7 @@ Connecting to 'http://localhost:8081/api/auth/login' violates the following Cont
 3. **Vérifier les requêtes réseau :**
    - Onglet Network
    - Filtrer par "XHR" ou "Fetch"
-   - Vérifier que les requêtes vers `http://localhost:8081` passent
+   - Vérifier que les requêtes vers `http://localhost:8080` passent
 
 ### Vérification en Production
 

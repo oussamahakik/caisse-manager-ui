@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useCallback, memo } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, Edit2, Trash2, X, Save, Tag } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { Plus, Edit2, Trash2, Save, Tag } from 'lucide-react';
 import { toast } from 'sonner';
 import api from '../services/api';
 import { t } from '../i18n';
+import Modal from './common/Modal/Modal';
 
 const PromotionsManager = memo(({ token, snackId }) => {
     const [promotions, setPromotions] = useState([]);
@@ -195,164 +196,139 @@ const PromotionsManager = memo(({ token, snackId }) => {
                 ))}
             </div>
 
-            <AnimatePresence>
-                {isModalOpen && (
-                    <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
-                        onClick={() => setIsModalOpen(false)}
-                    >
-                        <motion.div
-                            initial={{ scale: 0.9, opacity: 0 }}
-                            animate={{ scale: 1, opacity: 1 }}
-                            exit={{ scale: 0.9, opacity: 0 }}
-                            onClick={(e) => e.stopPropagation()}
-                            className="glass-strong rounded-3xl p-6 max-w-2xl w-full border border-blue-200/50 dark:border-blue-500/30 max-h-[90vh] overflow-y-auto"
+            <Modal
+                isOpen={isModalOpen}
+                onClose={() => setIsModalOpen(false)}
+                title={isEditMode ? t('promotions.edit') : t('promotions.create')}
+                size="xl"
+            >
+                <form onSubmit={handleSubmit} className="space-y-4">
+                    <div className="grid grid-cols-2 gap-4">
+                        <div>
+                            <label className="form-label">{t('promotions.name')}</label>
+                            <input
+                                type="text"
+                                value={formData.nom}
+                                onChange={(e) => setFormData({ ...formData, nom: e.target.value })}
+                                className="form-input"
+                                required
+                            />
+                        </div>
+                        <div>
+                            <label className="form-label">{t('promotions.type')}</label>
+                            <select
+                                value={formData.typePromotion}
+                                onChange={(e) => setFormData({ ...formData, typePromotion: e.target.value })}
+                                className="form-select"
+                            >
+                                <option value="POURCENTAGE">Pourcentage</option>
+                                <option value="MONTANT_FIXE">Montant fixe</option>
+                                <option value="CODE_PROMO">Code promo</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div>
+                        <label className="form-label">{t('promotions.description')}</label>
+                        <textarea
+                            value={formData.description}
+                            onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                            className="form-textarea"
+                            rows="3"
+                        />
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                        <div>
+                            <label className="form-label">{t('promotions.value')}</label>
+                            <input
+                                type="number"
+                                step="0.01"
+                                value={formData.valeur}
+                                onChange={(e) => setFormData({ ...formData, valeur: e.target.value })}
+                                className="form-input"
+                                required
+                            />
+                        </div>
+                        <div>
+                            <label className="form-label">{t('promotions.code')}</label>
+                            <input
+                                type="text"
+                                value={formData.codePromo}
+                                onChange={(e) => setFormData({ ...formData, codePromo: e.target.value })}
+                                className="form-input"
+                            />
+                        </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                        <div>
+                            <label className="form-label">{t('promotions.startDate')}</label>
+                            <input
+                                type="date"
+                                value={formData.dateDebut}
+                                onChange={(e) => setFormData({ ...formData, dateDebut: e.target.value })}
+                                className="form-input"
+                                required
+                            />
+                        </div>
+                        <div>
+                            <label className="form-label">{t('promotions.endDate')}</label>
+                            <input
+                                type="date"
+                                value={formData.dateFin}
+                                onChange={(e) => setFormData({ ...formData, dateFin: e.target.value })}
+                                className="form-input"
+                                required
+                            />
+                        </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                        <div>
+                            <label className="form-label">{t('promotions.product')} ID</label>
+                            <input
+                                type="number"
+                                value={formData.produitId}
+                                onChange={(e) => setFormData({ ...formData, produitId: e.target.value })}
+                                className="form-input"
+                                placeholder="Laisser vide pour promotion globale"
+                            />
+                        </div>
+                        <div>
+                            <label className="form-label">{t('promotions.category')}</label>
+                            <input
+                                type="text"
+                                value={formData.categorie}
+                                onChange={(e) => setFormData({ ...formData, categorie: e.target.value })}
+                                className="form-input"
+                                placeholder="Ex: BURGER, TACOS"
+                            />
+                        </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <input
+                            type="checkbox"
+                            checked={formData.actif}
+                            onChange={(e) => setFormData({ ...formData, actif: e.target.checked })}
+                            className="w-4 h-4"
+                        />
+                        <label className="text-sm font-medium">{t('promotions.active')}</label>
+                    </div>
+                    <div className="modal-footer">
+                        <button
+                            type="submit"
+                            className="btn-primary flex-1"
                         >
-                            <div className="flex justify-between items-center mb-4">
-                                <h3 className="text-xl font-bold gradient-text">
-                                    {isEditMode ? t('promotions.edit') : t('promotions.create')}
-                                </h3>
-                                <button onClick={() => setIsModalOpen(false)}>
-                                    <X className="w-5 h-5" />
-                                </button>
-                            </div>
-                            <form onSubmit={handleSubmit} className="space-y-4">
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div>
-                                        <label className="block text-sm font-medium mb-2">{t('promotions.name')}</label>
-                                        <input
-                                            type="text"
-                                            value={formData.nom}
-                                            onChange={(e) => setFormData({ ...formData, nom: e.target.value })}
-                                            className="w-full px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700"
-                                            required
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="block text-sm font-medium mb-2">{t('promotions.type')}</label>
-                                        <select
-                                            value={formData.typePromotion}
-                                            onChange={(e) => setFormData({ ...formData, typePromotion: e.target.value })}
-                                            className="w-full px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700"
-                                        >
-                                            <option value="POURCENTAGE">Pourcentage</option>
-                                            <option value="MONTANT_FIXE">Montant fixe</option>
-                                            <option value="CODE_PROMO">Code promo</option>
-                                        </select>
-                                    </div>
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium mb-2">{t('promotions.description')}</label>
-                                    <textarea
-                                        value={formData.description}
-                                        onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                                        className="w-full px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700"
-                                        rows="3"
-                                    />
-                                </div>
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div>
-                                        <label className="block text-sm font-medium mb-2">{t('promotions.value')}</label>
-                                        <input
-                                            type="number"
-                                            step="0.01"
-                                            value={formData.valeur}
-                                            onChange={(e) => setFormData({ ...formData, valeur: e.target.value })}
-                                            className="w-full px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700"
-                                            required
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="block text-sm font-medium mb-2">{t('promotions.code')}</label>
-                                        <input
-                                            type="text"
-                                            value={formData.codePromo}
-                                            onChange={(e) => setFormData({ ...formData, codePromo: e.target.value })}
-                                            className="w-full px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700"
-                                        />
-                                    </div>
-                                </div>
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div>
-                                        <label className="block text-sm font-medium mb-2">{t('promotions.startDate')}</label>
-                                        <input
-                                            type="date"
-                                            value={formData.dateDebut}
-                                            onChange={(e) => setFormData({ ...formData, dateDebut: e.target.value })}
-                                            className="w-full px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700"
-                                            required
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="block text-sm font-medium mb-2">{t('promotions.endDate')}</label>
-                                        <input
-                                            type="date"
-                                            value={formData.dateFin}
-                                            onChange={(e) => setFormData({ ...formData, dateFin: e.target.value })}
-                                            className="w-full px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700"
-                                            required
-                                        />
-                                    </div>
-                                </div>
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div>
-                                        <label className="block text-sm font-medium mb-2">{t('promotions.product')} ID</label>
-                                        <input
-                                            type="number"
-                                            value={formData.produitId}
-                                            onChange={(e) => setFormData({ ...formData, produitId: e.target.value })}
-                                            className="w-full px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700"
-                                            placeholder="Laisser vide pour promotion globale"
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="block text-sm font-medium mb-2">{t('promotions.category')}</label>
-                                        <input
-                                            type="text"
-                                            value={formData.categorie}
-                                            onChange={(e) => setFormData({ ...formData, categorie: e.target.value })}
-                                            className="w-full px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700"
-                                            placeholder="Ex: BURGER, TACOS"
-                                        />
-                                    </div>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                    <input
-                                        type="checkbox"
-                                        checked={formData.actif}
-                                        onChange={(e) => setFormData({ ...formData, actif: e.target.checked })}
-                                        className="w-4 h-4"
-                                    />
-                                    <label className="text-sm font-medium">{t('promotions.active')}</label>
-                                </div>
-                                <div className="flex gap-2">
-                                    <motion.button
-                                        type="submit"
-                                        whileHover={{ scale: 1.05 }}
-                                        whileTap={{ scale: 0.95 }}
-                                        className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-lg"
-                                    >
-                                        <Save className="w-4 h-4" />
-                                        {t('common.save')}
-                                    </motion.button>
-                                    <motion.button
-                                        type="button"
-                                        whileHover={{ scale: 1.05 }}
-                                        whileTap={{ scale: 0.95 }}
-                                        onClick={() => setIsModalOpen(false)}
-                                        className="px-4 py-2 bg-slate-200 dark:bg-slate-700 rounded-lg"
-                                    >
-                                        {t('common.cancel')}
-                                    </motion.button>
-                                </div>
-                            </form>
-                        </motion.div>
-                    </motion.div>
-                )}
-            </AnimatePresence>
+                            <Save className="w-4 h-4 mr-2" />
+                            {t('common.save')}
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => setIsModalOpen(false)}
+                            className="btn-secondary"
+                        >
+                            {t('common.cancel')}
+                        </button>
+                    </div>
+                </form>
+            </Modal>
         </div>
     );
 });
